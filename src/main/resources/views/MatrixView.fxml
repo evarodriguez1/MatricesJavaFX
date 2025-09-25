@@ -7,9 +7,20 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 
+
+<?import javafx.scene.control.Label?>
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.matrices.controllers.MainController"
+      fx:controller="com.calculos.controllers.MatrixController"
       spacing="10">
+
+        <VBox alignment="CENTER" spacing="10">
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+            <Label text="Módulo de Operaciones con Matrices" styleClass="title-label" />
+
+            <Button text="← Volver al Menú Principal" onAction="#backToMenu" styleClass="clear-button"/>
+        </VBox>
 
     <!-- Padding correcto usando Insets -->
     <padding>

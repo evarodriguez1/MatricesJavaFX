@@ -1,6 +1,4 @@
-package com.matrices.models;
-
-import java.util.Arrays;
+package com.calculos.models;
 
 public class MatrixSolver {
 

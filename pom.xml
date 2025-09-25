@@ -52,7 +52,7 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.matrices/com.matrices.MainApp</mainClass>
+                            <mainClass>com.matrices/com.calculos.MainApp</mainClass>
                         </configuration>
                     </execution>
                 </executions>

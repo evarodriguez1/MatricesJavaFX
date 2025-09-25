@@ -1,7 +1,7 @@
-module com.matrices {
+module com.calculos {
     requires javafx.controls;
     requires javafx.fxml;
 
-    opens com.matrices.controllers to javafx.fxml;
-    exports com.matrices;
+    opens com.calculos.controllers to javafx.fxml;
+    exports com.calculos;
 }
