@@ -1,13 +1,16 @@
-package com.matrices.controllers;
+package com.calculos.controllers;
 
-import com.matrices.models.MatrixSolver;
-import com.matrices.utils.InputValidator;
-import com.matrices.utils.PopupManager;
+import com.calculos.MainApp;
+import com.calculos.models.MatrixSolver;
+import com.calculos.utils.InputValidator;
+import com.calculos.utils.PopupManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-public class MainController {
+import java.io.IOException;
+
+public class MatrixController {
 
     @FXML private TextField a11Field, a12Field, a13Field, b1Field;
     @FXML private TextField a21Field, a22Field, a23Field, b2Field;
@@ -48,8 +51,6 @@ public class MainController {
             // Mostramos el resultado en el TextArea
             resultArea.setText(result);
 
-            // Limpiamos todos los campos de entrada
-            clearFields();
 
         } catch (IllegalArgumentException ex) {
             // Si hubo un error en la entrada, usamos un popup
@@ -57,10 +58,31 @@ public class MainController {
         }
     }
 
-    // Método auxiliar para limpiar todos los TextFields
+    @FXML
+    private void onClear() {
+        clearFields();
+    }
+
     private void clearFields() {
         a11Field.clear(); a12Field.clear(); a13Field.clear(); b1Field.clear();
         a21Field.clear(); a22Field.clear(); a23Field.clear(); b2Field.clear();
         a31Field.clear(); a32Field.clear(); a33Field.clear(); b3Field.clear();
+
+        // AÑADIDO: También limpiamos el área de resultados.
+        resultArea.clear();
     }
+
+    @FXML
+    private void backToMenu() {
+        try {
+            // Llama al método estático en MainApp para cambiar la escena
+            MainApp.showMainMenuView();
+        } catch (IOException e) {
+            e.printStackTrace();
+            PopupManager.showError("Error al cargar el menú principal: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.matrices.utils;
+package com.calculos.utils;
 
 public class InputValidator {
     public static double parseDouble(String text, String fieldName) {

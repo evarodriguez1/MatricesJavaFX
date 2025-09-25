@@ -7,9 +7,20 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 
+
+<?import javafx.scene.control.Label?>
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.matrices.controllers.MainController"
+      fx:controller="com.calculos.controllers.MatrixController"
       spacing="10">
+
+        <VBox alignment="CENTER" spacing="10">
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+            <Label text="Módulo de Operaciones con Matrices" styleClass="title-label" />
+
+            <Button text="← Volver al Menú Principal" onAction="#backToMenu" styleClass="clear-button"/>
+        </VBox>
 
     <!-- Padding correcto usando Insets -->
     <padding>
@@ -39,6 +50,11 @@
         <TextField fx:id="a32Field" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="a32"/>
         <TextField fx:id="a33Field" GridPane.rowIndex="2" GridPane.columnIndex="2" promptText="a33"/>
         <TextField fx:id="b3Field"  GridPane.rowIndex="2" GridPane.columnIndex="3" promptText="b3"/>
+
+        <!-- Botón Limpiar -->
+        <Button text="Limpiar" onAction="#onClear"
+                GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"
+                styleClass="clear-button" />
 
         <!-- Botón Resolver -->
         <Button text="Resolver" onAction="#onSolve"
