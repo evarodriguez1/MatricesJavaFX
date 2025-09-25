@@ -48,8 +48,6 @@ public class MainController {
             // Mostramos el resultado en el TextArea
             resultArea.setText(result);
 
-            // Limpiamos todos los campos de entrada
-            clearFields();
 
         } catch (IllegalArgumentException ex) {
             // Si hubo un error en la entrada, usamos un popup
@@ -57,10 +55,18 @@ public class MainController {
         }
     }
 
-    // Método auxiliar para limpiar todos los TextFields
+    @FXML
+    private void onClear() {
+        clearFields();
+    }
+
     private void clearFields() {
         a11Field.clear(); a12Field.clear(); a13Field.clear(); b1Field.clear();
         a21Field.clear(); a22Field.clear(); a23Field.clear(); b2Field.clear();
         a31Field.clear(); a32Field.clear(); a33Field.clear(); b3Field.clear();
+
+        // AÑADIDO: También limpiamos el área de resultados.
+        resultArea.clear();
     }
+
 }

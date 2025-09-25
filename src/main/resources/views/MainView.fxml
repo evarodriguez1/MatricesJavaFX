@@ -40,6 +40,11 @@
         <TextField fx:id="a33Field" GridPane.rowIndex="2" GridPane.columnIndex="2" promptText="a33"/>
         <TextField fx:id="b3Field"  GridPane.rowIndex="2" GridPane.columnIndex="3" promptText="b3"/>
 
+        <!-- Botón Limpiar -->
+        <Button text="Limpiar" onAction="#onClear"
+                GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"
+                styleClass="clear-button" />
+
         <!-- Botón Resolver -->
         <Button text="Resolver" onAction="#onSolve"
                 GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
