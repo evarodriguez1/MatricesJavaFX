@@ -1,7 +1,7 @@
 package com.calculos.controllers;
 
 import com.calculos.models.EstadisticasSolver;
-import com.calculos.MainApp;
+import com.calculos.Launcher;
 import com.calculos.utils.PopupManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -218,7 +218,7 @@ public class StatisticsController {
     @FXML
     private void backToMenu() {
         try {
-            MainApp.showMainMenuView();
+            Launcher.showMainMenuView();
         } catch (Exception e) {
             PopupManager.showError("Error al volver al menú principal: " + e.getMessage());
         }

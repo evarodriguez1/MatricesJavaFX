@@ -1,6 +1,6 @@
 package com.calculos.controllers;
 
-import com.calculos.MainApp;
+import com.calculos.Launcher;
 import com.calculos.models.MatrixSolver;
 import com.calculos.utils.InputValidator;
 import com.calculos.utils.PopupManager;
@@ -76,7 +76,7 @@ public class MatrixController {
     private void backToMenu() {
         try {
             // Llama al método estático en MainApp para cambiar la escena
-            MainApp.showMainMenuView();
+            Launcher.showMainMenuView();
         } catch (IOException e) {
             e.printStackTrace();
             PopupManager.showError("Error al cargar el menú principal: " + e.getMessage());

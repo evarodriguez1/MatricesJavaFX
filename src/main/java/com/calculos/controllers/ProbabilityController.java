@@ -1,6 +1,6 @@
 package com.calculos.controllers;
 
-import com.calculos.MainApp;
+import com.calculos.Launcher;
 import javafx.fxml.FXML;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.VBox; // O el layout principal
@@ -19,7 +19,7 @@ public class ProbabilityController {
 
     @FXML
     private void backToMenu() throws Exception {
-        MainApp.showMainMenuView();
+        Launcher.showMainMenuView();
     }
 
     // Aquí irían los métodos para la Binomial, Gaussiana, etc.
