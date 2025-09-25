@@ -13,6 +13,7 @@ public class MatrixSolver {
         }
 
         // Aplicar Gauss-Jordan
+        //
         for (int i = 0; i < n; i++) {
             // Buscar pivote
             if (M[i][i] == 0) {
