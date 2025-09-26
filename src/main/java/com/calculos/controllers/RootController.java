@@ -1,46 +1,37 @@
 package com.calculos.controllers;
 
-import com.calculos.Launcher;
+import com.calculos.navigation.View;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 
-public class RootController {
+/**
+ * Controlador para la vista principal (RootView.fxml).
+ * Actúa como el menú de navegación principal de la aplicación.
+ * Hereda de BaseController para obtener la funcionalidad de navegación.
+ */
+public class RootController extends BaseController {
 
+    /**
+     * Navega a la vista de Estadísticas cuando se presiona el botón correspondiente.
+     * Delega toda la lógica de navegación al NavigationManager.
+     */
     @FXML
     private void openStatisticsView() {
-        try {
-            // Carga la vista de Estadísticas (necesitas crear el FXML)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/StatisticsView.fxml"));
-            Parent root = loader.load();
-            Launcher.setRoot(root, "Módulo - Estadísticas");
-        } catch (Exception e) {
-            e.printStackTrace();
-            // Implementa un PopupManager.showError aquí si lo necesitas
-        }
+        navigationManager.navigateTo(View.STATISTICS);
     }
 
+    /**
+     * Navega a la vista de Probabilidades cuando se presiona el botón correspondiente.
+     */
     @FXML
     private void openProbabilityView() {
-        try {
-            // Carga la vista de Probabilidad (necesitas crear el FXML)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ProbabilityView.fxml"));
-            Parent root = loader.load();
-            Launcher.setRoot(root, "Módulo - Probabilidades");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        navigationManager.navigateTo(View.PROBABILITY);
     }
 
+    /**
+     * Navega a la vista de Matrices cuando se presiona el botón correspondiente.
+     */
     @FXML
     private void openMatrixView() {
-        try {
-            // Carga la vista de Matrices (es tu MatrixView.fxml)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/MatrixView.fxml"));
-            Parent root = loader.load();
-            Launcher.setRoot(root, "Módulo - Matrices");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        navigationManager.navigateTo(View.MATRIX);
     }
 }

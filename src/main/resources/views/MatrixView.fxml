@@ -2,65 +2,74 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
-
-<?import javafx.scene.control.Label?>
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.calculos.controllers.MatrixController"
-      spacing="10">
-
-        <VBox alignment="CENTER" spacing="10">
-            <padding>
-                <Insets top="15" right="15" bottom="15" left="15"/>
-            </padding>
-            <Label text="Módulo de Operaciones con Matrices" styleClass="title-label" />
-
-            <Button text="← Volver al Menú Principal" onAction="#backToMenu" styleClass="clear-button"/>
-        </VBox>
-
-    <!-- Padding correcto usando Insets -->
+<!--
+    Vista para el Solver de Matrices.
+    Se definen fx:id individuales para cada TextField. La agrupación en listas
+    se realizará en el método initialize() del controlador para máxima robustez.
+-->
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.MatrixController"
+      spacing="15" styleClass="root">
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
-    <!-- GridPane con TextFields y botón -->
-    <GridPane hgap="10" vgap="10">
-        <padding>
-            <Insets top="10" right="10" bottom="10" left="10"/>
-        </padding>
+    <!-- === CABECERA DE LA VISTA === -->
+    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 10 0;">
+        <Button onAction="#backToMenu" styleClass="navigation-button">
+            <graphic><FontIcon iconLiteral="mdi2a-arrow-left-bold-circle-outline" iconSize="32" iconColor="#EDE7F6"/></graphic>
+            <tooltip><Tooltip text="Volver al Menú Principal"/></tooltip>
+        </Button>
+        <Label text="Resolución de Sistemas de Ecuaciones (3x3)" styleClass="title-label" />
+    </HBox>
 
-        <!-- Fila 1 -->
-        <TextField fx:id="a11Field" GridPane.rowIndex="0" GridPane.columnIndex="0" promptText="a11"/>
-        <TextField fx:id="a12Field" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="a12"/>
-        <TextField fx:id="a13Field" GridPane.rowIndex="0" GridPane.columnIndex="2" promptText="a13"/>
-        <TextField fx:id="b1Field"  GridPane.rowIndex="0" GridPane.columnIndex="3" promptText="b1"/>
+    <!-- === ZONA 1: ENTRADA DE DATOS (MATRIZ AUMENTADA) === -->
+    <HBox alignment="CENTER" spacing="10" styleClass="content-pane">
+        <!-- Matriz A -->
+        <GridPane hgap="8" vgap="8">
+            <Label text="Matriz A" styleClass="subtitle-label" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="3"/>
+            <TextField fx:id="a11Field" promptText="a11" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="a12Field" promptText="a12" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <TextField fx:id="a13Field" promptText="a13" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            <TextField fx:id="a21Field" promptText="a21" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="a22Field" promptText="a22" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            <TextField fx:id="a23Field" promptText="a23" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+            <TextField fx:id="a31Field" promptText="a31" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="a32Field" promptText="a32" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            <TextField fx:id="a33Field" promptText="a33" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+        </GridPane>
 
-        <!-- Fila 2 -->
-        <TextField fx:id="a21Field" GridPane.rowIndex="1" GridPane.columnIndex="0" promptText="a21"/>
-        <TextField fx:id="a22Field" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="a22"/>
-        <TextField fx:id="a23Field" GridPane.rowIndex="1" GridPane.columnIndex="2" promptText="a23"/>
-        <TextField fx:id="b2Field"  GridPane.rowIndex="1" GridPane.columnIndex="3" promptText="b2"/>
+        <!-- Separador Visual -->
+        <Pane style="-fx-background-color: #6A1B9A; -fx-min-width: 2px; -fx-max-width: 2px;"/>
 
-        <!-- Fila 3 -->
-        <TextField fx:id="a31Field" GridPane.rowIndex="2" GridPane.columnIndex="0" promptText="a31"/>
-        <TextField fx:id="a32Field" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="a32"/>
-        <TextField fx:id="a33Field" GridPane.rowIndex="2" GridPane.columnIndex="2" promptText="a33"/>
-        <TextField fx:id="b3Field"  GridPane.rowIndex="2" GridPane.columnIndex="3" promptText="b3"/>
+        <!-- Vector B -->
+        <GridPane hgap="8" vgap="8">
+            <Label text="Vector B" styleClass="subtitle-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="b1Field" promptText="b1" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="b2Field" promptText="b2" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="b3Field" promptText="b3" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        </GridPane>
+    </HBox>
 
-        <!-- Botón Limpiar -->
-        <Button text="Limpiar" onAction="#onClear"
-                GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"
-                styleClass="clear-button" />
+    <!-- === ZONA 2: ACCIONES === -->
+    <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 15 0 15 0;">
+        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar Matriz">
+            <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
+        </Button>
+        <Button onAction="#onSolve" styleClass="primary-action-button" text="Resolver Sistema">
+            <graphic><FontIcon iconLiteral="mdi2g-gate-and" iconSize="18"/></graphic>
+        </Button>
+    </HBox>
 
-        <!-- Botón Resolver -->
-        <Button text="Resolver" onAction="#onSolve"
-                GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-    </GridPane>
-
-    <!-- TextArea para resultados -->
-    <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="150"/>
+    <!-- === ZONA 3: RESULTADOS === -->
+    <VBox VBox.vgrow="ALWAYS">
+        <Label text="Resultados del Análisis" styleClass="subtitle-label"/>
+        <TextArea fx:id="resultArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" prefHeight="150"/>
+    </VBox>
 </VBox>

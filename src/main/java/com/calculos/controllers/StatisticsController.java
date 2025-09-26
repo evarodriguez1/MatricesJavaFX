@@ -1,226 +1,237 @@
 package com.calculos.controllers;
 
-import com.calculos.models.EstadisticasSolver;
-import com.calculos.Launcher;
-import com.calculos.utils.PopupManager;
-import javafx.collections.FXCollections;
+import com.calculos.models.DataSet;
+import com.calculos.utils.InputValidator;
+import com.calculos.utils.exceptions.ValidationException;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class StatisticsController {
+/**
+ * Controlador para la vista de Estadística Descriptiva.
+ * Gestiona la entrada de datos, delega la validación y el parseo a métodos especializados,
+ * crea un objeto de dominio {@link DataSet} para los cálculos y formatea los resultados para la UI.
+ */
+public class StatisticsController extends BaseController {
 
-    @FXML private ComboBox<String> dataTypeComboBox;
+    // --- Componentes FXML de la Vista ---
+    @FXML private ComboBox<DataType> dataTypeComboBox;
     @FXML private TextField dataInputField;
-    @FXML private ComboBox<String> resultTypeComboBox;
+    @FXML private ComboBox<ResultType> resultTypeComboBox;
     @FXML private TextArea resultArea;
 
-    private List<Double> currentData = new ArrayList<>();
-    private String currentDataType = "Continuos"; // Default
+    // Estado del controlador: guarda el último conjunto de datos válido.
+    private DataSet currentDataSet;
 
+    /**
+     * Enum interno para los tipos de datos.
+     */
+    private enum DataType {
+        CONTINUOUS("Continuos"), DISCRETE("Discretos");
+        private final String displayName;
+        DataType(String name) { this.displayName = name; }
+        @Override public String toString() { return displayName; }
+    }
+
+    /**
+     * Enum interno para los tipos de resultados.
+     */
+    private enum ResultType {
+        POSITION("Medidas de Posición"),
+        DISPERSION("Medidas de Dispersión"),
+        FREQUENCIES("Tabla de Frecuencias");
+        private final String displayName;
+        ResultType(String name) { this.displayName = name; }
+        @Override public String toString() { return displayName; }
+    }
+
+    /**
+     * Configura el estado inicial de la vista.
+     */
     @FXML
     public void initialize() {
-        // Inicializar ComboBox de tipo de datos
-        dataTypeComboBox.setItems(FXCollections.observableArrayList("Continuos", "Discretos"));
-        dataTypeComboBox.setValue("Continuos");
-        dataTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> currentDataType = newVal);
+        dataTypeComboBox.getItems().setAll(DataType.values());
+        dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
 
-        // Inicializar ComboBox de resultados específicos
-        resultTypeComboBox.setItems(FXCollections.observableArrayList(
-                "Medidas de Posición (Media, Mediana, Moda, Cuartiles)",
-                "Medidas de Dispersión (Varianza, Desviación, Curtosis)",
-                "Tabla de Frecuencias (Absolutas y Relativas)"
-        ));
+        resultTypeComboBox.getItems().setAll(ResultType.values());
+        resultTypeComboBox.setPromptText("Calcular una medida específica...");
     }
 
-    private List<Double> parseAndValidateData() throws IllegalArgumentException {
-        String entrada = dataInputField.getText().trim();
-        if (entrada.isEmpty()) {
-            throw new IllegalArgumentException("La lista de números no puede estar vacía.");
-        }
-
-        // Reemplaza comas por espacios y divide
-        String[] partes = entrada.replace(",", " ").split("\\s+");
-        List<Double> numeros = new ArrayList<>();
-
-        for (String parte : partes) {
-            if (parte.isEmpty()) continue;
-            try {
-                double valor = Double.parseDouble(parte);
-                if (currentDataType.equals("Discretos") && valor % 1 != 0) {
-                    throw new IllegalArgumentException("Los datos discretos deben ser números enteros.");
-                }
-                numeros.add(valor);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Error de formato: Asegúrate de que todos los valores sean números válidos.");
-            }
-        }
-
-        if (numeros.isEmpty()) {
-            throw new IllegalArgumentException("No se detectaron números válidos en la entrada.");
-        }
-
-        // La lista debe estar ordenada para los cálculos de cuartiles y mediana
-        Collections.sort(numeros);
-        return numeros;
-    }
-
+    /**
+     * Orquesta el cálculo y presentación de TODAS las medidas estadísticas.
+     */
     @FXML
     private void onSolveAll() {
         try {
-            currentData = parseAndValidateData();
+            currentDataSet = createDataSetFromInput();
 
-            // 1. Mostrar datos básicos y ordenados
             StringBuilder sb = new StringBuilder();
-            sb.append("--- Análisis Estadístico Descriptivo ---\n");
-            sb.append(String.format("Tipo de Datos: %s\n", currentDataType));
-            sb.append(String.format("Cantidad de Datos (N): %d\n", currentData.size()));
-            sb.append(String.format("Lista Ordenada: %s...\n",
-                    currentData.stream()
-                            .limit(20) // Muestra solo los primeros 20 para no saturar
-                            .map(d -> String.format("%.2f", d))
-                            .collect(Collectors.joining(", ")) + (currentData.size() > 20 ? " y más" : "")));
+            sb.append(formatDataSetInfo(currentDataSet));
             sb.append("\n======================================\n\n");
-
-            // 2. Calcular y mostrar todas las secciones
-            sb.append(calculatePosicion(currentData));
+            sb.append(formatPositionMeasures(currentDataSet));
             sb.append("\n======================================\n\n");
-            sb.append(calculateDispersion(currentData));
+            sb.append(formatDispersionMeasures(currentDataSet));
             sb.append("\n======================================\n\n");
-            sb.append(calculateFrequencies(currentData));
+            sb.append(formatFrequenciesTable(currentDataSet));
 
             resultArea.setText(sb.toString());
 
-        } catch (IllegalArgumentException ex) {
-            PopupManager.showError(ex.getMessage());
-        } catch (Exception ex) {
-            PopupManager.showError("Error inesperado en el cálculo de estadísticas: " + ex.getMessage());
-            ex.printStackTrace();
+        } catch (ValidationException e) {
+            handleValidationException(e);
+        } catch (Exception e) {
+            handleGenericException(e);
         }
     }
 
+    /**
+     * Orquesta el cálculo y presentación de una medida específica seleccionada.
+     */
     @FXML
     private void onSolveSpecific() {
-        String selected = resultTypeComboBox.getValue();
-        if (selected == null) return;
+        ResultType selectedType = resultTypeComboBox.getValue();
+        if (selectedType == null) {
+            // No usamos popup, es una no-acción
+            return;
+        }
 
         try {
-            // Asegurarse de que los datos estén parseados y validados antes de un cálculo específico
-            if (currentData.isEmpty() || !dataInputField.getText().trim().isEmpty()) {
-                currentData = parseAndValidateData();
+            // Revalida los datos si el campo de texto ha sido modificado
+            if (currentDataSet == null) {
+                currentDataSet = createDataSetFromInput();
             }
 
-            if (selected.contains("Posición")) {
-                resultArea.setText(calculatePosicion(currentData));
-            } else if (selected.contains("Dispersión")) {
-                resultArea.setText(calculateDispersion(currentData));
-            } else if (selected.contains("Frecuencias")) {
-                resultArea.setText(calculateFrequencies(currentData));
-            }
+            String resultText = switch(selectedType) {
+                case POSITION -> formatPositionMeasures(currentDataSet);
+                case DISPERSION -> formatDispersionMeasures(currentDataSet);
+                case FREQUENCIES -> formatFrequenciesTable(currentDataSet);
+            };
 
-        } catch (IllegalArgumentException ex) {
-            // Si hay un error al parsear los datos, mostramos el error
-            PopupManager.showError(ex.getMessage());
+            resultArea.setText(resultText);
+
+        } catch (ValidationException e) {
+            handleValidationException(e);
+        } catch (Exception e) {
+            handleGenericException(e);
         }
     }
 
-    private String calculatePosicion(List<Double> nums) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("--- MEDIDAS DE POSICIÓN ---\n");
-
-        double media = EstadisticasSolver.media(nums);
-        double mediana = EstadisticasSolver.mediana(nums);
-        List<Double> modas = EstadisticasSolver.moda(nums);
-        double q1 = EstadisticasSolver.cuartil(nums, 1);
-        double q3 = EstadisticasSolver.cuartil(nums, 3);
-
-        sb.append(String.format("Media (μ/x̄): %.4f\n", media));
-        sb.append(String.format("Mediana (Q2): %.4f\n", mediana));
-
-        String modaStr = modas.isEmpty() ? "No hay moda o es unimodal (f=1)." :
-                modas.size() == 1 ? String.format("%.4f", modas.get(0)) :
-                        "Múltiple: " + modas.stream().map(d -> String.format("%.4f", d)).collect(Collectors.joining(", "));
-        sb.append(String.format("Moda: %s\n", modaStr));
-
-        sb.append(String.format("Primer Cuartil (Q1): %.4f\n", q1));
-        sb.append(String.format("Tercer Cuartil (Q3): %.4f\n", q3));
-
-        return sb.toString();
-    }
-
-    private String calculateDispersion(List<Double> nums) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("--- MEDIDAS DE DISPERSIÓN ---\n");
-
-        double rango = EstadisticasSolver.rango(nums);
-        double varianza = EstadisticasSolver.varianza(nums);
-        double desvEstandar = EstadisticasSolver.desviacionEstandar(nums);
-        double rangoIQ = EstadisticasSolver.rangoIntercuartilico(nums);
-        double cv = EstadisticasSolver.coeficienteVariacion(nums);
-        double curtosis = EstadisticasSolver.coeficienteCurtosis(nums);
-
-        sb.append(String.format("Rango: %.4f\n", rango));
-        sb.append(String.format("Varianza (σ²): %.4f\n", varianza));
-        sb.append(String.format("Desviación Estándar (σ): %.4f\n", desvEstandar));
-        sb.append(String.format("Rango Intercuartílico (RIQ): %.4f\n", rangoIQ));
-        sb.append(String.format("Coeficiente de Variación (CV): %.2f%%\n", cv));
-
-        String interpretacion = curtosis < -0.263 ? "Platicúrtica (aplanada)" :
-                curtosis > 0.263 ? "Leptocúrtica (apuntada)" : "Mesocúrtica (Normal)";
-        sb.append(String.format("Coeficiente de Curtosis (g₂): %.4f → %s\n", curtosis, interpretacion));
-
-        return sb.toString();
-    }
-
-    private String calculateFrequencies(List<Double> nums) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("--- TABLA DE FRECUENCIAS ---\n");
-
-        Map<Double, Long> frecuenciaAbs = EstadisticasSolver.getFrecuenciasAbsolutas(nums);
-        int total = nums.size();
-        long acumuladaAbs = 0;
-        double acumuladaRel = 0;
-
-        // Título de la tabla
-        sb.append(String.format("%-10s %-8s %-8s %-12s %-12s\n", "Valor (xi)", "f (Abs)", "F (Abs)", "fr (Rel %)", "Fr (Rel %)"));
-        sb.append("-----------------------------------------------------------------------\n");
-
-        for (Map.Entry<Double, Long> entry : frecuenciaAbs.entrySet()) {
-            double valor = entry.getKey();
-            long f = entry.getValue();
-
-            acumuladaAbs += f;
-            double fr = (f * 100.0) / total;
-            acumuladaRel += fr;
-
-            sb.append(String.format("%-10.2f %-8d %-8d %-12.2f %-12.2f\n", valor, f, acumuladaAbs, fr, acumuladaRel));
-        }
-
-        return sb.toString();
-    }
-
+    /**
+     * Limpia la interfaz de usuario a su estado inicial.
+     */
     @FXML
     private void onClear() {
         dataInputField.clear();
         resultArea.clear();
-        currentData.clear();
-        dataTypeComboBox.setValue("Continuos");
+        currentDataSet = null; // Borra los datos en memoria
+        dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
         resultTypeComboBox.getSelectionModel().clearSelection();
     }
 
-    @FXML
-    private void backToMenu() {
-        try {
-            Launcher.showMainMenuView();
-        } catch (Exception e) {
-            PopupManager.showError("Error al volver al menú principal: " + e.getMessage());
+    // --- Lógica de Parseo y Creación del Modelo ---
+
+    private DataSet createDataSetFromInput() throws ValidationException {
+        String input = dataInputField.getText();
+        if (input == null || input.trim().isEmpty()) {
+            throw new ValidationException("El campo de entrada de datos no puede estar vacío.");
         }
+
+        DataType dataType = dataTypeComboBox.getValue();
+        List<Double> numbers = new ArrayList<>();
+        // Usa una expresión regular para dividir por uno o más espacios, comas o saltos de línea.
+        String[] parts = input.trim().split("[\\s,;\\n]+");
+
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            double value = InputValidator.parseDouble(part, "Datos de entrada");
+            if (dataType == DataType.DISCRETE && value % 1 != 0) {
+                throw new ValidationException("Se seleccionó 'Discretos', pero se encontró el valor no entero: " + value);
+            }
+            numbers.add(value);
+        }
+
+        if (numbers.isEmpty()) {
+            throw new ValidationException("No se detectaron números válidos en la entrada.");
+        }
+
+        return new DataSet(numbers);
+    }
+
+    // --- Métodos de Formateo de Resultados (Lógica de Presentación) ---
+
+    private String formatDataSetInfo(DataSet dataSet) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- ANÁLISIS ESTADÍSTICO DESCRIPTIVO ---\n");
+        sb.append(String.format("Tipo de Datos: %s\n", dataTypeComboBox.getValue()));
+        sb.append(String.format("Cantidad de Datos (N): %d\n", dataSet.getSize()));
+        String sortedDataPreview = dataSet.getSortedData().stream()
+                .limit(20)
+                .map(d -> String.format("%.2f", d))
+                .collect(Collectors.joining(", "));
+        if (dataSet.getSize() > 20) {
+            sortedDataPreview += ", ...";
+        }
+        sb.append(String.format("Primeros Datos Ordenados: %s", sortedDataPreview));
+        return sb.toString();
+    }
+
+    private String formatPositionMeasures(DataSet dataSet) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- MEDIDAS DE POSICIÓN ---\n");
+        sb.append(String.format("Media (μ/x̄): %.4f\n", dataSet.getMean()));
+        sb.append(String.format("Mediana (Q2): %.4f\n", dataSet.getMedian()));
+
+        List<Double> modes = dataSet.getMode();
+        String modeStr = modes.isEmpty() ? "No hay moda (amodal)" :
+                modes.size() == 1 ? String.format("%.4f", modes.get(0)) :
+                        "Múltiple: " + modes.stream().map(d -> String.format("%.4f", d)).collect(Collectors.joining(", "));
+        sb.append(String.format("Moda: %s\n", modeStr));
+
+        sb.append(String.format("Primer Cuartil (Q1): %.4f\n", dataSet.getQuartile(1)));
+        sb.append(String.format("Tercer Cuartil (Q3): %.4f\n", dataSet.getQuartile(3)));
+        return sb.toString();
+    }
+
+    private String formatDispersionMeasures(DataSet dataSet) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- MEDIDAS DE DISPERSIÓN ---\n");
+        sb.append(String.format("Rango: %.4f\n", dataSet.getRange()));
+        sb.append(String.format("Rango Intercuartílico (RIQ): %.4f\n", dataSet.getInterquartileRange()));
+        sb.append(String.format("Varianza (σ²): %.4f\n", dataSet.getVariance()));
+        sb.append(String.format("Desviación Estándar (σ): %.4f\n", dataSet.getStandardDeviation()));
+        sb.append(String.format("Coeficiente de Variación (CV): %.2f%%\n", dataSet.getCoefficientOfVariation()));
+
+        double kurtosis = dataSet.getKurtosis();
+        String interpretation = kurtosis < -0.25 ? "Platicúrtica (aplanada)" :
+                kurtosis > 0.25 ? "Leptocúrtica (apuntada)" : "Mesocúrtica (Normal)";
+        sb.append(String.format("Coeficiente de Curtosis (g₂): %.4f → %s\n", kurtosis, interpretation));
+        return sb.toString();
+    }
+
+    private String formatFrequenciesTable(DataSet dataSet) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- TABLA DE FRECUENCIAS ---\n");
+        Map<Double, Long> frequencies = dataSet.getAbsoluteFrequencies();
+        long total = dataSet.getSize();
+
+        sb.append(String.format("%-12s %-10s %-10s %-15s %-15s\n", "Valor (xi)", "f (Abs)", "F (Abs)", "fr (Rel %)", "Fr (Rel %)"));
+        sb.append("-".repeat(65)).append("\n");
+
+        long cumulativeAbs = 0;
+        double cumulativeRel = 0.0;
+        for (Map.Entry<Double, Long> entry : frequencies.entrySet()) {
+            double value = entry.getKey();
+            long absFreq = entry.getValue();
+            cumulativeAbs += absFreq;
+            double relFreq = (absFreq * 100.0) / total;
+            cumulativeRel += relFreq;
+            sb.append(String.format("%-12.2f %-10d %-10d %-15.2f %-15.2f\n", value, absFreq, cumulativeAbs, relFreq, cumulativeRel));
+        }
+        return sb.toString();
     }
 }

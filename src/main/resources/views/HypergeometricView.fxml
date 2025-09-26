@@ -14,12 +14,11 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <!--
-    Vista para la Calculadora de Distribución Binomial.
-    Estructurada en 3 zonas: Entradas, Acciones y Salidas.
-    Introduce la visualización gráfica (BarChart) y la iconografía.
-    Es la plantilla de diseño para todas las vistas de cálculo.
+    Vista para la Calculadora de Distribución Hipergeométrica.
+    Sigue la plantilla estándar de 3 zonas, idéntica en estructura
+    a la vista Binomial para una máxima consistencia de UX.
 -->
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.BinomialController"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.HypergeometricController"
       spacing="15" styleClass="tab-content-area">
     <padding>
         <Insets top="10" right="20" bottom="20" left="20"/>
@@ -27,16 +26,21 @@
 
     <!-- === ZONA 1: PARÁMETROS DE ENTRADA === -->
     <VBox spacing="10" styleClass="content-pane">
-        <Label text="1. Parámetros de la Distribución" styleClass="subtitle-label"/>
+        <Label text="1. Parámetros de la Población y Muestra" styleClass="subtitle-label"/>
         <GridPane hgap="10" vgap="10">
-            <Label text="Total de Ensayos (n):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="nField" promptText="Ej: 10" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                <tooltip><Tooltip text="Número total de veces que se repite el experimento (debe ser un entero positivo)."/></tooltip>
+            <Label text="Población Total (N):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="nField" promptText="Ej: 52 (cartas)" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <tooltip><Tooltip text="El tamaño total del grupo del que se extrae la muestra (entero positivo)."/></tooltip>
             </TextField>
 
-            <Label text="Probabilidad de Éxito (p):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <TextField fx:id="pField" promptText="Ej: 0.5" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                <tooltip><Tooltip text="La probabilidad de que ocurra un 'éxito' en un solo ensayo (un número entre 0 y 1)."/></tooltip>
+            <Label text="Éxitos en Población (K):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="KField" promptText="Ej: 4 (Ases)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <tooltip><Tooltip text="El número total de elementos considerados 'éxito' en la población (debe ser >= 0 y <= N)."/></tooltip>
+            </TextField>
+
+            <Label text="Tamaño de Muestra (n):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="nSampleField" promptText="Ej: 5 (cartas extraídas)" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <tooltip><Tooltip text="El número de elementos que se extraen sin reemplazo (debe ser >= 0 y <= N)."/></tooltip>
             </TextField>
         </GridPane>
 
@@ -46,9 +50,9 @@
         <ComboBox fx:id="calculationTypeComboBox" prefWidth="Infinity"/>
 
         <GridPane hgap="10" vgap="10">
-            <Label text="Valor de k / a:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Label text="Éxitos en Muestra (k/a):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
             <TextField fx:id="k1Field" promptText="Éxitos deseados" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                <tooltip><Tooltip text="Número de éxitos a evaluar (debe ser un entero no negativo)."/></tooltip>
+                <tooltip><Tooltip text="Número de éxitos a evaluar en la muestra extraída (entero no negativo)."/></tooltip>
             </TextField>
 
             <Label fx:id="k2Label" text="Valor de b:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
@@ -64,7 +68,7 @@
             <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
         </Button>
         <Button onAction="#onSolve" styleClass="primary-action-button" text="Calcular">
-            <graphic><FontIcon iconLiteral="mdi2c-calculator-variant" iconSize="18"/></graphic>
+            <graphic><FontIcon iconLiteral="mdi2c-cards-playing-outline" iconSize="18"/></graphic>
         </Button>
     </HBox>
 
@@ -80,7 +84,7 @@
         <VBox HBox.hgrow="ALWAYS">
             <Label text="Visualización de la Distribución" styleClass="subtitle-label"/>
             <BarChart fx:id="distributionChart" animated="false">
-                <xAxis> <CategoryAxis label="Número de Éxitos (k)"/> </xAxis>
+                <xAxis> <CategoryAxis label="Número de Éxitos en Muestra (k)"/> </xAxis>
                 <yAxis> <NumberAxis label="Probabilidad P(X=k)"/> </yAxis>
             </BarChart>
         </VBox>

@@ -2,14 +2,16 @@ package com.calculos.navigation;
 
 /**
  * Enum para gestionar de forma centralizada todas las vistas (FXML) de la aplicación.
- * Cada entrada define la ruta al archivo FXML y el título de la ventana asociado.
- * Esto evita tener Strings de rutas esparcidos por el código.
+ * Cada entrada define la ruta al archivo FXML y el título de la ventana asociado,
+ * promoviendo un código más limpio y a prueba de errores de tipeo.
+ *
+ * @author Tu Nombre (Equipo de Desarrollo)
  */
 public enum View {
     ROOT("/views/RootView.fxml", "Calculadora de Matemática Aplicada"),
     BINOMIAL("/views/BinomialView.fxml", "Distribución Binomial"),
-    GAUSSIANA("/views/GaussianaView.fxml", "Distribución Normal (Gaussiana)"),
-    HIPERGEOMETRICA("/views/HipergeometricaView.fxml", "Distribución Hipergeométrica"),
+    GAUSSIANA("/views/NormalView.fxml", "Distribución Normal (Gaussiana)"),
+    HIPERGEOMETRICA("/views/HypergeometricView.fxml", "Distribución Hipergeométrica"),
     POISSON("/views/PoissonView.fxml", "Distribución de Poisson"),
     MATRIX("/views/MatrixView.fxml", "Resolución de Matrices (Gauss-Jordan)"),
     STATISTICS("/views/StatisticsView.fxml", "Cálculos de Estadística Descriptiva"),
@@ -23,10 +25,16 @@ public enum View {
         this.title = title;
     }
 
+    /**
+     * @return La ruta relativa al archivo FXML dentro de la carpeta 'resources'.
+     */
     public String getFxmlFile() {
         return fxmlFile;
     }
 
+    /**
+     * @return El título a mostrar en la ventana cuando esta vista esté activa.
+     */
     public String getTitle() {
         return title;
     }

@@ -4,63 +4,76 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.calculos.controllers.StatisticsController"
-            prefHeight="750.0" prefWidth="900.0" styleClass="root">
+<!--
+    Vista para el Módulo de Estadística Descriptiva.
+    Organizada en la plantilla estándar de 3 zonas.
+    La Zona de Salida utiliza un ScrollPane para manejar grandes
+    volúmenes de resultados de forma limpia.
+-->
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.StatisticsController"
+      spacing="15" styleClass="root">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
 
-    <top>
-        <VBox alignment="CENTER" spacing="10">
-            <padding>
-                <Insets top="15" right="15" bottom="15" left="15"/>
-            </padding>
-            <Label text="Módulo de Estadísticas Descriptivas" styleClass="title-label" />
-            <Button text="← Volver al Menú Principal" onAction="#backToMenu" styleClass="clear-button"/>
-        </VBox>
-    </top>
+    <!-- === CABECERA DE LA VISTA === -->
+    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 10 0;">
+        <Button onAction="#backToMenu" styleClass="navigation-button">
+            <graphic><FontIcon iconLiteral="mdi2a-arrow-left-bold-circle-outline" iconSize="32" iconColor="#EDE7F6"/></graphic>
+            <tooltip><Tooltip text="Volver al Menú Principal"/></tooltip>
+        </Button>
+        <Label text="Módulo de Estadística Descriptiva" styleClass="title-label" />
+    </HBox>
 
-    <center>
-        <VBox spacing="20" alignment="TOP_CENTER">
-            <padding><Insets top="20" right="40" bottom="20" left="40"/></padding>
+    <!-- === ZONA 1: ENTRADA DE DATOS === -->
+    <VBox spacing="10" styleClass="content-pane">
+        <Label text="1. Ingreso del Conjunto de Datos" styleClass="subtitle-label"/>
+        <GridPane hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+            <Label text="Lista de Números:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="dataInputField" promptText="Sepáralos por espacio, coma, punto y coma o salto de línea" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <tooltip><Tooltip text="Pega aquí tu lista de datos numéricos. Por ejemplo: 1.5 2,3; 4 5.1"/></tooltip>
+            </TextField>
 
-            <Label text="1. Ingreso de Datos" styleClass="subtitle-label"/>
+            <Label text="Tipo de Datos:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <ComboBox fx:id="dataTypeComboBox" prefWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        </GridPane>
+    </VBox>
 
-            <GridPane hgap="10" vgap="10" alignment="CENTER">
-                <Label text="Tipo de Datos:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <ComboBox fx:id="dataTypeComboBox" promptText="Selecciona el tipo" prefWidth="200" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    <!-- === ZONA 2: ACCIONES === -->
+    <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 15 0 0 0;">
+        <!-- Sección para cálculo específico -->
+        <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+            <ComboBox fx:id="resultTypeComboBox" prefWidth="250" promptText="Calcular sección específica..."/>
+            <Button onAction="#onSolveSpecific" styleClass="secondary-action-button">
+                <graphic><FontIcon iconLiteral="mdi2c-cursor-default-click-outline" iconSize="18"/></graphic>
+            </Button>
+        </HBox>
 
-                <Label text="Lista de Números (separados por espacio o coma):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <TextField fx:id="dataInputField" promptText="Ej: 1, 2.5, 3, 4.2" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-            </GridPane>
+        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar">
+            <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
+        </Button>
+        <Button onAction="#onSolveAll" styleClass="primary-action-button" text="Analizar Todo">
+            <graphic><FontIcon iconLiteral="mdi2s-magnify" iconSize="18"/></graphic>
+        </Button>
+    </HBox>
 
-            <HBox spacing="15" alignment="CENTER">
-                <VBox.margin>
-                    <Insets top="10.0"/>
-                </VBox.margin>
-                <Button text="Calcular TODAS las Estadísticas" onAction="#onSolveAll" styleClass="button"/>
-                <Button text="Limpiar Datos y Resultados" onAction="#onClear" styleClass="clear-button"/>
-            </HBox>
-
-            <Label text="Opciones de Visualización (Cálculo Detallado)" styleClass="subtitle-label">
-                <VBox.margin>
-                    <Insets top="10.0"/>
-                </VBox.margin>
-            </Label>
-            <ComboBox fx:id="resultTypeComboBox" promptText="Selecciona qué sección ver" prefWidth="300" onAction="#onSolveSpecific"/>
-
-            <Label text="2. Resultados" styleClass="subtitle-label">
-                <VBox.margin>
-                    <Insets top="10.0"/>
-                </VBox.margin>
-            </Label>
-            <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="400" prefWidth="800"/>
-
-        </VBox>
-    </center>
-</BorderPane>
+    <!-- === ZONA 3: RESULTADOS === -->
+    <VBox VBox.vgrow="ALWAYS" spacing="5">
+        <Label text="2. Resultados del Análisis" styleClass="subtitle-label"/>
+        <!-- Usamos un ScrollPane para que el TextArea no domine la vista y se pueda desplazar -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+            <TextArea fx:id="resultArea" editable="false" wrapText="true"/>
+        </ScrollPane>
+    </VBox>
+</VBox>

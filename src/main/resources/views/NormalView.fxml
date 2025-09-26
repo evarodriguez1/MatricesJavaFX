@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.AreaChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<!--
+    Vista para la Calculadora de Distribución Normal (Gaussiana).
+    Sigue la plantilla estándar de 3 zonas, utilizando un AreaChart
+    para la visualización de la campana de Gauss y el área sombreada.
+-->
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.NormalController"
+      spacing="15" styleClass="tab-content-area">
+    <padding>
+        <Insets top="10" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- === ZONA 1: PARÁMETROS DE ENTRADA === -->
+    <VBox spacing="10" styleClass="content-pane">
+        <Label text="1. Parámetros de la Distribución" styleClass="subtitle-label"/>
+        <GridPane hgap="10" vgap="10">
+            <Label text="Media (μ):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="meanField" promptText="Ej: 100" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <tooltip><Tooltip text="El valor promedio o central de la distribución."/></tooltip>
+            </TextField>
+
+            <Label text="Varianza (σ²):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="varianceField" promptText="Ej: 225" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <tooltip><Tooltip text="Medida de dispersión. La desviación estándar (σ) es la raíz cuadrada de la varianza."/></tooltip>
+            </TextField>
+        </GridPane>
+
+        <Label text="2. Tipo de Cálculo" styleClass="subtitle-label">
+            <VBox.margin><Insets top="15.0"/></VBox.margin>
+        </Label>
+        <ComboBox fx:id="calculationTypeComboBox" prefWidth="Infinity"/>
+
+        <GridPane hgap="10" vgap="10">
+            <Label text="Punto 'a':" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="aField" promptText="Límite del cálculo" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <tooltip><Tooltip text="Valor a evaluar. Actúa como límite inferior en rangos."/></tooltip>
+            </TextField>
+
+            <Label fx:id="bLabel" text="Punto 'b':" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="bField" promptText="Solo para P(a ≤ X ≤ b)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <tooltip><Tooltip text="Límite superior para el cálculo de rango."/></tooltip>
+            </TextField>
+        </GridPane>
+    </VBox>
+
+    <!-- === ZONA 2: ACCIONES === -->
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar">
+            <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
+        </Button>
+        <Button onAction="#onSolve" styleClass="primary-action-button" text="Calcular">
+            <graphic><FontIcon iconLiteral="mdi2c-chart-bell-curve" iconSize="18"/></graphic>
+        </Button>
+    </HBox>
+
+    <!-- === ZONA 3: RESULTADOS Y VISUALIZACIÓN === -->
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <!-- Panel Izquierdo: Resultados Numéricos -->
+        <VBox HBox.hgrow="NEVER">
+            <Label text="Resultados Numéricos" styleClass="subtitle-label"/>
+            <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="250" prefWidth="300"/>
+        </VBox>
+
+        <!-- Panel Derecho: Visualización Gráfica (Campana de Gauss) -->
+        <VBox HBox.hgrow="ALWAYS">
+            <Label text="Visualización de la Distribución" styleClass="subtitle-label"/>
+            <AreaChart fx:id="distributionChart" animated="false">
+                <xAxis>
+                    <NumberAxis fx:id="xAxis" label="Valores (X)"/>
+                </xAxis>
+                <yAxis>
+                    <NumberAxis fx:id="yAxis" label="Densidad de Probabilidad f(x)"/>
+                </yAxis>
+            </AreaChart>
+        </VBox>
+    </HBox>
+</VBox>

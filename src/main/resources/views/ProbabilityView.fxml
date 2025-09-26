@@ -6,41 +6,55 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.calculos.controllers.ProbabilityController"
-            prefHeight="600.0" prefWidth="800.0" styleClass="root">
+<!--
+    Vista del Módulo de Probabilidades.
+    Utiliza un BorderPane para la estructura principal y un TabPane
+    para la navegación entre las diferentes distribuciones.
 
+    IMPORTANTE: Los <Tab> están deliberadamente VACÍOS. Su contenido
+    será cargado dinámicamente ("Lazy Loading") por el ProbabilityController
+    la primera vez que se haga clic en ellos. Esto optimiza el rendimiento.
+-->
+<?import javafx.scene.control.Tooltip?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.ProbabilityController"
+            styleClass="root">
+
+    <!-- === CABECERA DE LA VISTA === -->
     <top>
-        <VBox alignment="CENTER" spacing="10">
-            <padding>
-                <Insets top="15" right="15" bottom="15" left="15"/>
-            </padding>
+        <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 20px;">
+            <!-- Botón de Navegación para Volver -->
+            <Button onAction="#backToMenu" styleClass="navigation-button">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2a-arrow-left-bold-circle-outline" iconSize="32" iconColor="#EDE7F6"/>
+                </graphic>
+                <tooltip>
+                    <Tooltip text="Volver al Menú Principal"/>
+                </tooltip>
+            </Button>
+
+            <!-- Título de la Sección -->
             <Label text="Módulo de Probabilidades" styleClass="title-label" />
-            <Button text="← Volver al Menú Principal" onAction="#backToMenu" styleClass="clear-button"/>
-        </VBox>
+        </HBox>
     </top>
 
+    <!-- === CONTENIDO PRINCIPAL (PESTAÑAS) === -->
     <center>
-        <TabPane fx:id="probabilityTabPane" side="TOP" tabClosingPolicy="UNAVAILABLE">
-
-            <Tab text="Distribución Binomial">
-                <fx:include source="BinomialView.fxml"/>
-            </Tab>
-
-            <Tab text="Distribución Normal (Gaussiana)">
-                <fx:include source="GaussianaView.fxml"/>
-            </Tab>
-
-            <Tab text="Distribución Hipergeométrica">
-                <fx:include source="HipergeometricaView.fxml"/>
-            </Tab>
-
-            <Tab text="Distribución de Poisson">
-                <fx:include source="PoissonView.fxml"/>
-            </Tab>
-
+        <TabPane fx:id="probabilityTabPane" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets left="20" right="20" bottom="20"/>
+            </BorderPane.margin>
+            <!--
+                fx:id se usa para que el Controller pueda identificarlas y
+                añadirles los listeners para la carga perezosa.
+                El contenido se carga en el código, no aquí.
+            -->
+            <Tab fx:id="binomialTab" text="Binomial"/>
+            <Tab fx:id="normalTab" text="Normal"/>
+            <Tab fx:id="hypergeometricTab" text="Hipergeométrica"/>
+            <Tab fx:id="poissonTab" text="Poisson"/>
         </TabPane>
     </center>
 </BorderPane>
