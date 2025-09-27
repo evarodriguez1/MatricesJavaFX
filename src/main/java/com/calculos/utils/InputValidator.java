@@ -7,12 +7,9 @@ import com.calculos.utils.exceptions.ValidationException;
  * Centraliza toda la lógica de validación para asegurar consistencia y robustez,
  * lanzando una ValidationException con mensajes claros y contextuales si la
  * validación falla.
- *
  * Esta clase está marcada como 'final' y tiene un constructor privado para
  * prevenir la herencia y la instanciación, siguiendo las mejores prácticas para
  * clases de utilidad estáticas.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class InputValidator {
 

@@ -6,16 +6,12 @@ import java.util.stream.Collectors;
 
 /**
  * Representa un conjunto de datos para análisis estadístico.
- *
  * Esta clase encapsula una lista de números y proporciona una API rica para
  * realizar cálculos estadísticos sobre ellos. Al ser creada, la instancia valida
  * y ordena los datos, garantizando un estado interno consistente y fiable para
  * todos los cálculos posteriores.
- *
  * Este modelo orientado a objetos reemplaza el enfoque de Solver estático,
  * promoviendo un código más seguro, limpio y mantenible.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class DataSet {
 

@@ -13,7 +13,6 @@
 
 <!--
     Vista para el Módulo de Estadística Descriptiva.
-    VERSIÓN 2.2 FINAL Y CORREGIDA.
     - Se añade maxWidth="Infinity" a los componentes clave para forzar la expansión.
     - Se optimiza la estructura para garantizar la correcta renderización.
 -->
@@ -43,11 +42,11 @@
             </columnConstraints>
 
             <Label text="Tipo de Datos:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <!-- CORRECCIÓN CLAVE: maxWidth="Infinity" fuerza al ComboBox a expandirse. -->
+            <!-- maxWidth="Infinity" fuerza al ComboBox a expandirse. -->
             <ComboBox fx:id="dataTypeComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
             <Label text="Lista de Números:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <!-- CORRECCIÓN CLAVE: maxWidth="Infinity" fuerza al TextField a expandirse. -->
+            <!-- maxWidth="Infinity" fuerza al TextField a expandirse. -->
             <TextField fx:id="dataInputField" styleClass="data-input-field"
                        disable="true" maxWidth="Infinity"
                        promptText="Selecciona un Tipo de Datos para empezar..." GridPane.columnIndex="1" GridPane.rowIndex="1">

@@ -7,16 +7,12 @@ import java.util.Objects;
 
 /**
  * Representa una distribución de probabilidad Binomial.
- *
  * Encapsula los parámetros 'n' (ensayos) y 'p' (probabilidad de éxito)
  * para proporcionar una API orientada a objetos para realizar cálculos.
  * El objeto es inmutable y valida sus parámetros en la creación, garantizando
  * un estado consistente y seguro para todos los cálculos.
- *
  * Utiliza memoización (caché) para optimizar cálculos repetitivos de la
  * distribución de probabilidad completa.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class BinomialDistribution {
 

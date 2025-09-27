@@ -9,8 +9,6 @@ import javafx.fxml.FXML;
  * a los diferentes módulos de cálculo (Estadísticas, Probabilidades, Matrices).
  * Hereda de {@link BaseController} para obtener la funcionalidad de navegación
  * inyectada por {@link com.calculos.navigation.NavigationManager}.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class RootController extends BaseController {
 

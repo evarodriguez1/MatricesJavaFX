@@ -6,15 +6,11 @@ import java.util.Map;
 
 /**
  * Representa una distribución de probabilidad Hipergeométrica.
- *
  * Encapsula los parámetros 'N' (población), 'K' (éxitos en población) y 'n' (tamaño de muestra)
  * para proporcionar una API orientada a objetos. El objeto es inmutable y valida sus
  * parámetros en la creación, garantizando un estado consistente.
- *
  * Utiliza memoización (caché) para optimizar el cálculo de la PMF completa,
  * lo que es crucial para la visualización gráfica de la distribución.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class HypergeometricDistribution {
 

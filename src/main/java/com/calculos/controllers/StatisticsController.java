@@ -3,7 +3,6 @@ package com.calculos.controllers;
 import com.calculos.models.DataSet;
 import com.calculos.utils.InputValidator;
 import com.calculos.utils.exceptions.ValidationException;
-import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
@@ -16,10 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * Controlador para la vista de Estadística Descriptiva.
- * Implementa una UI reactiva que guía al usuario y utiliza el modelo
- * de dominio {@link DataSet} para realizar y presentar análisis estadísticos complejos.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
+ * Implementa una UI reactiva guiada y una
+ * lógica de presentación de resultados consistente.
  */
 public final class StatisticsController extends BaseController {
 
@@ -29,6 +26,7 @@ public final class StatisticsController extends BaseController {
     @FXML private ComboBox<ResultType> resultTypeComboBox;
     @FXML private TextArea resultArea;
 
+    /** Enum interno para los tipos de datos, garantizando seguridad de tipos. */
     private enum DataType {
         CONTINUOUS("Continuos"),
         DISCRETE("Discretos");
@@ -38,6 +36,7 @@ public final class StatisticsController extends BaseController {
         @Override public String toString() { return displayName; }
     }
 
+    /** Enum interno para los tipos de resultados, garantizando seguridad de tipos. */
     private enum ResultType {
         POSITION("Medidas de Posición"),
         DISPERSION("Medidas de Dispersión"),
@@ -54,28 +53,23 @@ public final class StatisticsController extends BaseController {
      */
     @FXML
     public void initialize() {
-        // --- Configuración Inicial ---
         dataTypeComboBox.getItems().setAll(DataType.values());
         resultTypeComboBox.getItems().setAll(ResultType.values());
-        resultTypeComboBox.setPromptText("Calcular sección específica...");
 
-        // --- Lógica de UI Reactiva ---
-        // Se crea un listener que se dispara CADA VEZ que el valor del ComboBox cambia.
+        // Llama al método que establece el estado inicial correcto.
+        setInitialState();
+
+        // Lógica de UI Reactiva: se dispara CADA VEZ que el valor del ComboBox cambia.
         dataTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 // Habilita el campo de texto cuando se selecciona un tipo.
                 dataInputField.setDisable(false);
                 // Cambia el promptText dinámicamente según la selección.
-                if (newVal == DataType.DISCRETE) {
-                    dataInputField.setPromptText("Ej: 1 5 12 9 5 ...");
-                } else { // CONTINUOUS
-                    dataInputField.setPromptText("Ej: 1.52 5.3 12.01 9.8 ...");
-                }
+                dataInputField.setPromptText(
+                        newVal == DataType.DISCRETE ? "Ej: 1 5 12 9 5..." : "Ej: 1.52 5.3 12.01..."
+                );
             }
         });
-
-        // CORRECCIÓN DEL BUG: Establecer el valor inicial DESPUÉS de añadir el listener.
-        dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
     }
 
     /**
@@ -96,8 +90,8 @@ public final class StatisticsController extends BaseController {
             sb.append(formatFrequenciesTable(dataSet));
 
             resultArea.setText(sb.toString());
-        } catch (ValidationException e) {
-            handleValidationException(e);
+        } catch (ValidationException | IllegalArgumentException e) {
+            handleValidationException(new ValidationException(e.getMessage()));
         } catch (Exception e) {
             handleGenericException(e);
         }
@@ -114,34 +108,51 @@ public final class StatisticsController extends BaseController {
             return;
         }
         try {
+            // Siempre se leen los datos frescos de la UI para evitar estado rancio.
             DataSet dataSet = createDataSetFromInput();
 
-            String resultText = switch(selectedType) {
+            // La salida siempre incluye la información base.
+            StringBuilder sb = new StringBuilder();
+            sb.append(formatDataSetInfo(dataSet));
+            sb.append("\n======================================\n\n");
+
+            String specificResult = switch(selectedType) {
                 case POSITION -> formatPositionMeasures(dataSet);
                 case DISPERSION -> formatDispersionMeasures(dataSet);
                 case FREQUENCIES -> formatFrequenciesTable(dataSet);
             };
+            sb.append(specificResult);
 
-            resultArea.setText(resultText);
-        } catch (ValidationException e) {
-            handleValidationException(e);
+            resultArea.setText(sb.toString());
+        } catch (ValidationException | IllegalArgumentException e) {
+            handleValidationException(new ValidationException(e.getMessage()));
         } catch (Exception e) {
             handleGenericException(e);
         }
     }
 
     /**
-     * Limpia la interfaz de usuario a su estado inicial.
+     * Limpia la interfaz de usuario, reseteándola a su estado inicial.
      */
     @FXML
     private void onClear() {
+        setInitialState();
         dataInputField.clear();
         resultArea.clear();
-        // Al resetear, también deshabilitamos el campo de texto.
+    }
+
+    /**
+     * Centraliza la lógica para establecer el estado inicial o reseteado de la UI.
+     * Este método es llamado en initialize() y onClear() para máxima consistencia.
+     */
+    private void setInitialState() {
+        // Lógica de reseteo unificada que cumple los requisitos.
+        dataTypeComboBox.getSelectionModel().clearSelection();
+        dataTypeComboBox.setPromptText("Seleccionar tipo de dato...");
+        resultTypeComboBox.getSelectionModel().clearSelection();
+        resultTypeComboBox.setPromptText("Calcular sección específica...");
         dataInputField.setDisable(true);
         dataInputField.setPromptText("Selecciona un Tipo de Datos para empezar...");
-        dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
-        resultTypeComboBox.getSelectionModel().clearSelection();
     }
 
     // --- Lógica de Parseo y Creación del Modelo ---
@@ -153,14 +164,16 @@ public final class StatisticsController extends BaseController {
         }
 
         DataType dataType = dataTypeComboBox.getValue();
+        if (dataType == null) {
+            throw new ValidationException("Por favor, selecciona un Tipo de Datos (Continuos o Discretos).");
+        }
+
         List<Double> numbers = new ArrayList<>();
-        // Expresión regular robusta para dividir por espacios, comas, punto y coma o saltos de línea.
         String[] parts = input.trim().split("[\\s,;\\n]+");
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
-            // Usamos parseDouble que ya maneja comas/puntos
-            double value = InputValidator.parseDouble(part, "Dato de entrada");
+            double value = InputValidator.parseDouble(part.replace(',', '.'), "Dato de entrada");
             if (dataType == DataType.DISCRETE && value % 1 != 0) {
                 throw new ValidationException("Tipo de dato 'Discreto' seleccionado, pero se encontró el valor no entero: " + value);
             }
@@ -171,7 +184,6 @@ public final class StatisticsController extends BaseController {
             throw new ValidationException("No se detectaron números válidos en la entrada.");
         }
 
-        // El constructor de DataSet se encarga de la ordenación y validación final.
         return new DataSet(numbers);
     }
 
@@ -182,14 +194,13 @@ public final class StatisticsController extends BaseController {
         sb.append("--- ANÁLISIS ESTADÍSTICO DESCRIPTIVO ---\n");
         sb.append(String.format("Tipo de Datos: %s\n", dataTypeComboBox.getValue()));
         sb.append(String.format("Cantidad de Datos (N): %d\n", dataSet.getSize()));
-        String sortedDataPreview = dataSet.getSortedData().stream()
-                .limit(20)
-                .map(d -> String.format("%.2f", d))
+
+        // Se formatea y muestra la lista COMPLETA de datos.
+        String sortedDataString = dataSet.getSortedData().stream()
+                .map(d -> String.format(dataTypeComboBox.getValue() == DataType.DISCRETE ? "%.0f" : "%.2f", d))
                 .collect(Collectors.joining(", "));
-        if (dataSet.getSize() > 20) {
-            sortedDataPreview += ", ... y más";
-        }
-        sb.append(String.format("Primeros Datos Ordenados: %s", sortedDataPreview));
+
+        sb.append(String.format("Lista de Datos Ordenada: %s", sortedDataString));
         return sb.toString();
     }
 

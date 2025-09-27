@@ -1,43 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<!-- Vista Contenedora del Módulo de Probabilidades - Versión 2.1 FINAL -->
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.calculos.controllers.ProbabilityController" styleClass="root">
+<!--
+    Vista del Módulo de Probabilidades (BINOMIAL ÚNICAMENTE DE MOMENTO).
+    Implementa un diseño de formulario interactivo en cascada, comenzando
+    únicamente con la funcionalidad de la Distribución Binomial.
+-->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.calculos.controllers.ProbabilityController"
+      spacing="15" styleClass="root">
+    <padding>
+        <Insets top="20" right="30" bottom="20" left="30"/>
+    </padding>
 
-    <top>
-        <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 20px;">
-            <Button onAction="#backToMenu" styleClass="navigation-button">
-                <graphic><FontIcon iconLiteral="mdi2a-arrow-left-bold-circle-outline" iconSize="32" iconColor="#EDE7F6"/></graphic>
-                <tooltip><Tooltip text="Volver al Menú Principal"/></tooltip>
-            </Button>
-            <Label text="Módulo de Probabilidades" styleClass="title-label" />
-        </HBox>
-    </top>
+    <!-- === CABECERA DE LA VISTA === -->
+    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 10 0;">
+        <Button onAction="#backToMenu" styleClass="navigation-button">
+            <graphic><FontIcon iconLiteral="mdi2a-arrow-left-bold-circle-outline" iconSize="32" iconColor="#EDE7F6"/></graphic>
+            <tooltip><Tooltip text="Volver al Menú Principal"/></tooltip>
+        </Button>
+        <Label text="Módulo de Cálculos de Probabilidad" styleClass="title-label" />
+    </HBox>
 
-    <center>
-        <TabPane fx:id="probabilityTabPane" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-            <!--
-                CORRECCIÓN ESTRUCTURAL: El padding se aplica aquí para que el
-                TabPane mismo tenga un margen, permitiendo que su contenido
-                (las vistas de cálculo) se expanda completamente.
-            -->
-            <padding>
-                <Insets top="0" right="20" bottom="20" left="20"/>
-            </padding>
-            <Tab fx:id="binomialTab" text="Binomial"/>
-            <Tab fx:id="normalTab" text="Normal"/>
-            <Tab fx:id="hypergeometricTab" text="Hipergeométrica"/>
-            <Tab fx:id="poissonTab" text="Poisson"/>
-        </TabPane>
-    </center>
-</BorderPane>
+    <!-- === ZONA 1: SELECCIÓN Y PARÁMETROS DE ENTRADA === -->
+    <VBox fx:id="inputContainer" spacing="15" styleClass="content-pane">
+        <!-- SELECCIÓN PRINCIPAL -->
+        <Label text="1. Selección de la Distribución" styleClass="subtitle-label"/>
+        <ComboBox fx:id="distributionTypeComboBox" prefWidth="Infinity"/>
+
+        <!-- CONTENEDOR DE PARÁMETROS BINOMIAL -->
+        <VBox fx:id="binomialInputPane" spacing="10">
+            <GridPane hgap="15" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" minWidth="240"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label text="¿Cuántas veces se repite el experimento? (n):" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="nField" promptText="Número de ensayos (ej: 10)" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="¿Cuál es la probabilidad de éxito? (p):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="pField" promptText="Número entre 0 y 1 (ej: 0.5)" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            </GridPane>
+        </VBox>
+
+        <!-- SECCIÓN DE CÁLCULO CONDICIONAL (OCULTA POR DEFECTO) -->
+        <VBox fx:id="calculationPane" spacing="10" visible="false" managed="false">
+            <padding><Insets top="15.0"/></padding>
+            <Label text="2. ¿Qué probabilidad deseas calcular?" styleClass="subtitle-label"/>
+            <ComboBox fx:id="calculationTypeComboBox" prefWidth="Infinity"/>
+            <GridPane hgap="15" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" minWidth="240"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label fx:id="k1Label" text="Valor:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="k1Field" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label fx:id="k2Label" text="Valor máximo (b):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="k2Field" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </GridPane>
+        </VBox>
+    </VBox>
+
+    <!-- === ZONA 2: ACCIONES === -->
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button onAction="#onClear" styleClass="tertiary-action-button" text="Limpiar Todo">
+            <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
+        </Button>
+        <Button fx:id="solveButton" onAction="#onSolve" styleClass="primary-action-button" text="Calcular" disable="true">
+            <graphic><FontIcon iconLiteral="mdi2c-calculator-variant" iconSize="18"/></graphic>
+        </Button>
+    </HBox>
+
+    <!-- === ZONA 3: RESULTADOS Y VISUALIZACIÓN === -->
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <VBox HBox.hgrow="NEVER" spacing="5">
+            <Label text="Resultados Numéricos" styleClass="subtitle-label"/>
+            <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="300" prefWidth="350"/>
+        </VBox>
+        <VBox fx:id="chartContainer" HBox.hgrow="ALWAYS" spacing="5">
+            <Label text="Visualización de la Distribución" styleClass="subtitle-label"/>
+        </VBox>
+    </HBox>
+</VBox>

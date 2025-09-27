@@ -4,15 +4,11 @@ import java.util.Objects;
 
 /**
  * Representa una distribución de probabilidad Normal (Gaussiana).
- *
  * Encapsula los parámetros 'media' (μ) y 'desviación estándar' (σ) para
  * proporcionar una API orientada a objetos. El objeto es inmutable y valida
  * sus parámetros en la creación.
- *
  * Internamente, utiliza una aproximación de Hastings para calcular la Función
  * de Distribución Acumulada (CDF) de la distribución normal estándar.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class NormalDistribution {
 

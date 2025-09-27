@@ -8,14 +8,10 @@ import java.util.Map;
 
 /**
  * Representa una distribución de probabilidad de Poisson.
- *
  * Encapsula el parámetro 'lambda' (λ), la tasa promedio de ocurrencia de eventos.
  * El objeto es inmutable, valida lambda en su creación y ofrece una API robusta
  * para cálculos de probabilidad, utilizando BigDecimal para máxima precisión.
- *
  * Utiliza memoización para optimizar el rendimiento de los cálculos.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class PoissonDistribution {
 

@@ -64,7 +64,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <!-- CORRECCIÓN CLAVE: Ruta completa y directa al Launcher -->
+                    <!-- Ruta completa y directa al Launcher -->
                     <mainClass>com.calculos/com.calculos.Launcher</mainClass>
                 </configuration>
             </plugin>

@@ -1,20 +1,18 @@
 package com.calculos.navigation;
 
 /**
- * Enum para gestionar de forma centralizada todas las vistas (FXML) de la aplicación.
- * Cada entrada define la ruta al archivo FXML y el título de la ventana asociado,
- * promoviendo un código más limpio y a prueba de errores de tipeo.
- * ESTA ES LA VERSIÓN CORREGIDA Y ESTANDARIZADA.
+ * Enum para gestionar de forma centralizada todas las vistas principales de la aplicación.
+ * Cada entrada define la ruta al archivo FXML y el título de la ventana asociado.
+ * Esta arquitectura simplificada evita la necesidad de rutas a sub-vistas,
+ * ya que estas son gestionadas por sus controladores contenedores.
  */
 public enum View {
-    ROOT("/views/RootView.fxml", "Calculadora Aplicada"),
-    BINOMIAL("/views/BinomialView.fxml", "Distribución Binomial"),
-    NORMAL("/views/NormalView.fxml", "Distribución Normal (Gaussiana)"),
-    HYPERGEOMETRIC("/views/HypergeometricView.fxml", "Distribución Hipergeométrica"),
-    POISSON("/views/PoissonView.fxml", "Distribución de Poisson"),
-    MATRIX("/views/MatrixView.fxml", "Resolución de Matrices"),
-    STATISTICS("/views/StatisticsView.fxml", "Estadística Descriptiva"),
-    PROBABILITY("/views/ProbabilityView.fxml", "Módulo de Probabilidades");
+
+    // Vistas principales a las que se puede navegar desde el menú.
+    ROOT("/views/RootView.fxml", "Calculadora de Matemática Aplicada"),
+    STATISTICS("/views/StatisticsView.fxml", "Módulo de Estadística Descriptiva"),
+    PROBABILITY("/views/ProbabilityView.fxml", "Módulo de Cálculos de Probabilidad"),
+    MATRIX("/views/MatrixView.fxml", "Módulo de Resolución de Matrices");
 
     private final String fxmlFile;
     private final String title;

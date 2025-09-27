@@ -2,7 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
@@ -11,13 +13,15 @@
 
 <!--
     Vista para el Solver de Matrices.
-    Se definen fx:id individuales para cada TextField. La agrupación en listas
-    se realizará en el método initialize() del controlador para máxima robustez.
+    - Implementa una notación matemática intuitiva ([1,1], X₁, etc.).
+    - Añade un ComboBox para la selección de formato de resultado (Decimal/Fracción).
+    - Añade un botón para rellenar campos vacíos con ceros.
 -->
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.MatrixController"
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.calculos.controllers.MatrixController"
       spacing="15" styleClass="root">
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="20" right="30" bottom="20" left="30"/>
     </padding>
 
     <!-- === CABECERA DE LA VISTA === -->
@@ -26,50 +30,71 @@
             <graphic><FontIcon iconLiteral="mdi2a-arrow-left-bold-circle-outline" iconSize="32" iconColor="#EDE7F6"/></graphic>
             <tooltip><Tooltip text="Volver al Menú Principal"/></tooltip>
         </Button>
-        <Label text="Resolución de Sistemas de Ecuaciones (3x3)" styleClass="title-label" />
+        <Label text="Resolución de Sistemas de Ecuaciones (3x3)" styleClass="title-label"/>
     </HBox>
 
     <!-- === ZONA 1: ENTRADA DE DATOS (MATRIZ AUMENTADA) === -->
-    <HBox alignment="CENTER" spacing="10" styleClass="content-pane">
-        <!-- Matriz A -->
-        <GridPane hgap="8" vgap="8">
-            <Label text="Matriz A" styleClass="subtitle-label" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="3"/>
-            <TextField fx:id="a11Field" promptText="a11" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <TextField fx:id="a12Field" promptText="a12" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-            <TextField fx:id="a13Field" promptText="a13" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-            <TextField fx:id="a21Field" promptText="a21" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-            <TextField fx:id="a22Field" promptText="a22" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-            <TextField fx:id="a23Field" promptText="a23" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-            <TextField fx:id="a31Field" promptText="a31" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-            <TextField fx:id="a32Field" promptText="a32" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-            <TextField fx:id="a33Field" promptText="a33" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
-        </GridPane>
+    <VBox spacing="10" styleClass="content-pane">
+        <Label text="1. Ingrese los coeficientes del sistema" styleClass="subtitle-label"/>
+        <GridPane hgap="8" vgap="8" alignment="CENTER">
+            <!-- Fila de cabecera con la nueva notación matemática -->
+            <Label text="X₁" styleClass="label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Label text="X₂" styleClass="label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <Label text="X₃" styleClass="label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+            <Label text="b" styleClass="label" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
 
-        <!-- Separador Visual -->
-        <Pane style="-fx-background-color: #6A1B9A; -fx-min-width: 2px; -fx-max-width: 2px;"/>
+            <!-- Fila 1 de la Matriz -->
+            <TextField fx:id="a11Field" promptText="[1,1]" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="a12Field" promptText="[1,2]" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <TextField fx:id="a13Field" promptText="[1,3]" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            <Pane style="-fx-background-color: #6A1B9A; -fx-min-width: 2px; -fx-max-width: 2px;"
+                  GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+            <TextField fx:id="b1Field" promptText="[1,b]" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
 
-        <!-- Vector B -->
-        <GridPane hgap="8" vgap="8">
-            <Label text="Vector B" styleClass="subtitle-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="b1Field" promptText="b1" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <TextField fx:id="b2Field" promptText="b2" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-            <TextField fx:id="b3Field" promptText="b3" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <!-- Fila 2 de la Matriz -->
+            <TextField fx:id="a21Field" promptText="[2,1]" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="a22Field" promptText="[2,2]" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            <TextField fx:id="a23Field" promptText="[2,3]" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+            <Pane style="-fx-background-color: #6A1B9A; -fx-min-width: 2px; -fx-max-width: 2px;"
+                  GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+            <TextField fx:id="b2Field" promptText="[2,b]" GridPane.columnIndex="4" GridPane.rowIndex="2"/>
+
+            <!-- Fila 3 de la Matriz -->
+            <TextField fx:id="a31Field" promptText="[3,1]" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="a32Field" promptText="[3,2]" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            <TextField fx:id="a33Field" promptText="[3,3]" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+            <Pane style="-fx-background-color: #6A1B9A; -fx-min-width: 2px; -fx-max-width: 2px;"
+                  GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+            <TextField fx:id="b3Field" promptText="[3,b]" GridPane.columnIndex="4" GridPane.rowIndex="3"/>
         </GridPane>
-    </HBox>
+    </VBox>
 
     <!-- === ZONA 2: ACCIONES === -->
-    <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 15 0 15 0;">
-        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar Matriz">
+    <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 15 0 0 0;">
+        <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+            <!-- Selector de formato de resultado -->
+            <Label text="Formato:"/>
+            <ComboBox fx:id="resultFormatComboBox" prefWidth="150"/>
+            <!-- Botón para rellenar con ceros -->
+            <Button onAction="#onFillWithZeros" styleClass="secondary-action-button" text="Rellenar celdas vacías con ceros">
+                <graphic><FontIcon iconLiteral="mdi2n-numeric-0-box-multiple-outline" iconSize="18"/></graphic>
+            </Button>
+        </HBox>
+        <Button onAction="#onClear" styleClass="tertiary-action-button" text="Limpiar">
             <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
         </Button>
-        <Button onAction="#onSolve" styleClass="primary-action-button" text="Resolver Sistema">
+        <Button onAction="#onSolve" styleClass="primary-action-button" text="Resolver">
             <graphic><FontIcon iconLiteral="mdi2g-gate-and" iconSize="18"/></graphic>
         </Button>
     </HBox>
 
     <!-- === ZONA 3: RESULTADOS === -->
-    <VBox VBox.vgrow="ALWAYS">
+    <VBox VBox.vgrow="ALWAYS" spacing="5" style="-fx-padding: 10 0 0 0;">
         <Label text="Resultados del Análisis" styleClass="subtitle-label"/>
-        <TextArea fx:id="resultArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" prefHeight="150"/>
+        <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+            <content>
+                <TextArea fx:id="resultArea" editable="false" wrapText="true"/>
+            </content>
+        </ScrollPane>
     </VBox>
 </VBox>

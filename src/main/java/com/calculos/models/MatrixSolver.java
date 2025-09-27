@@ -7,8 +7,6 @@ import java.util.Optional;
  * Clase de utilidad que proporciona algoritmos para resolver sistemas de ecuaciones lineales.
  * La lógica está contenida en un método estático que devuelve un objeto de dominio
  * {@link MatrixSolution}, separando completamente el cálculo de la presentación.
- *
- * @author Tu Nombre (Equipo de Desarrollo)
  */
 public final class MatrixSolver {
 
@@ -21,7 +19,6 @@ public final class MatrixSolver {
     /**
      * Resuelve un sistema de ecuaciones lineales [A][x] = [B] usando el método de Gauss-Jordan
      * con pivoteo parcial para mejorar la estabilidad numérica.
-     *
      * @param a La matriz de coeficientes (NxN).
      * @param b El vector de resultados (Nx1).
      * @return Un objeto {@link MatrixSolution} que encapsula el tipo de solución y los resultados.

@@ -13,8 +13,10 @@ import javafx.stage.Stage;
 public class Launcher extends Application {
 
     // Definimos las dimensiones estándar de la aplicación como constantes.
-    private static final double APP_WIDTH = 900;
-    private static final double APP_HEIGHT = 700;
+    private static final double INITIAL_APP_WIDTH = 950;
+    private static final double INITIAL_APP_HEIGHT = 750;
+    private static final double MIN_APP_WIDTH = 800;
+    private static final double MIN_APP_HEIGHT = 650;
 
     public static void main(String[] args) {
         launch(args);
@@ -27,11 +29,11 @@ public class Launcher extends Application {
 
         // 2. Configurar las propiedades de la ventana (Stage).
         primaryStage.setTitle("Calculadora de Matemática Aplicada");
-        primaryStage.setWidth(APP_WIDTH);
-        primaryStage.setHeight(APP_HEIGHT);
-        primaryStage.setMinWidth(APP_WIDTH); // Fija el tamaño
-        primaryStage.setMinHeight(APP_HEIGHT);
-        primaryStage.setResizable(false); // Prohíbe al usuario redimensionar
+        primaryStage.setWidth(INITIAL_APP_WIDTH);
+        primaryStage.setHeight(INITIAL_APP_HEIGHT);
+        primaryStage.setMinWidth(MIN_APP_WIDTH); // Fija el tamaño
+        primaryStage.setMinHeight(MIN_APP_HEIGHT);
+        primaryStage.setResizable(true);
 
         // 3. Navegar a la vista inicial.
         navigationManager.navigateTo(View.ROOT);

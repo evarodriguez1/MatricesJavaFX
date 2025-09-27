@@ -3,7 +3,6 @@ package com.calculos.navigation;
 /**
  * Interfaz que define un contrato para los controladores que necesitan
  * capacidades de navegación.
- *
  * Implementar esta interfaz asegura que el controlador tendrá un método estandarizado
  * para recibir la instancia del NavigationManager.
  */

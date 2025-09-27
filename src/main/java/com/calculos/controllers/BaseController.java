@@ -11,7 +11,6 @@ import javafx.fxml.FXML;
  * Un controlador base abstracto del que todos los demás controladores de vistas heredarán.
  * Proporciona funcionalidad común como la navegación y el manejo de errores estandarizado,
  * reduciendo así el código duplicado y promoviendo la consistencia.
- *
  * Implementa la interfaz Navigable para recibir el gestor de navegación.
  */
 public abstract class BaseController implements Navigable {
@@ -42,7 +41,6 @@ public abstract class BaseController implements Navigable {
     /**
      * Manejador de errores de validación estandarizado.
      * Invoca al PopupManager para mostrar el error al usuario.
-     *
      * @param e La ValidationException capturada.
      */
     protected void handleValidationException(ValidationException e) {
