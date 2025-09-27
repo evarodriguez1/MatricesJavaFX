@@ -13,14 +13,15 @@
 
 <!--
     Vista para el Módulo de Estadística Descriptiva.
-    Organizada en la plantilla estándar de 3 zonas.
-    La Zona de Salida utiliza un ScrollPane para manejar grandes
-    volúmenes de resultados de forma limpia.
+    VERSIÓN 2.2 FINAL Y CORREGIDA.
+    - Se añade maxWidth="Infinity" a los componentes clave para forzar la expansión.
+    - Se optimiza la estructura para garantizar la correcta renderización.
 -->
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.StatisticsController"
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.calculos.controllers.StatisticsController"
       spacing="15" styleClass="root">
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="20" right="30" bottom="20" left="30"/>
     </padding>
 
     <!-- === CABECERA DE LA VISTA === -->
@@ -35,45 +36,50 @@
     <!-- === ZONA 1: ENTRADA DE DATOS === -->
     <VBox spacing="10" styleClass="content-pane">
         <Label text="1. Ingreso del Conjunto de Datos" styleClass="subtitle-label"/>
-        <GridPane hgap="10" vgap="10">
+        <GridPane hgap="15" vgap="10">
             <columnConstraints>
-                <ColumnConstraints hgrow="NEVER"/>
+                <ColumnConstraints hgrow="NEVER" minWidth="150"/>
                 <ColumnConstraints hgrow="ALWAYS"/>
             </columnConstraints>
-            <Label text="Lista de Números:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="dataInputField" promptText="Sepáralos por espacio, coma, punto y coma o salto de línea" GridPane.columnIndex="1" GridPane.rowIndex="0">
+
+            <Label text="Tipo de Datos:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <!-- CORRECCIÓN CLAVE: maxWidth="Infinity" fuerza al ComboBox a expandirse. -->
+            <ComboBox fx:id="dataTypeComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Label text="Lista de Números:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <!-- CORRECCIÓN CLAVE: maxWidth="Infinity" fuerza al TextField a expandirse. -->
+            <TextField fx:id="dataInputField" styleClass="data-input-field"
+                       disable="true" maxWidth="Infinity"
+                       promptText="Selecciona un Tipo de Datos para empezar..." GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <tooltip><Tooltip text="Pega aquí tu lista de datos numéricos. Por ejemplo: 1.5 2,3; 4 5.1"/></tooltip>
             </TextField>
-
-            <Label text="Tipo de Datos:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <ComboBox fx:id="dataTypeComboBox" prefWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
         </GridPane>
     </VBox>
 
     <!-- === ZONA 2: ACCIONES === -->
     <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 15 0 0 0;">
-        <!-- Sección para cálculo específico -->
         <HBox spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-            <ComboBox fx:id="resultTypeComboBox" prefWidth="250" promptText="Calcular sección específica..."/>
-            <Button onAction="#onSolveSpecific" styleClass="secondary-action-button">
-                <graphic><FontIcon iconLiteral="mdi2c-cursor-default-click-outline" iconSize="18"/></graphic>
+            <ComboBox fx:id="resultTypeComboBox" prefWidth="280" promptText="Calcular sección específica..."/>
+            <Button onAction="#onSolveSpecific" styleClass="primary-action-button" text="Calcular">
+                <graphic><FontIcon iconLiteral="mdi2c-cursor-default-click" iconSize="18"/></graphic>
+                <tooltip><Tooltip text="Calcular la sección seleccionada"/></tooltip>
             </Button>
         </HBox>
-
-        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar">
-            <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
+        <Button onAction="#onSolveAll" styleClass="secondary-action-button" text="Analizar Todo">
+            <graphic><FontIcon iconLiteral="mdi2m-magnify" iconSize="18"/></graphic>
         </Button>
-        <Button onAction="#onSolveAll" styleClass="primary-action-button" text="Analizar Todo">
-            <graphic><FontIcon iconLiteral="mdi2s-magnify" iconSize="18"/></graphic>
+        <Button onAction="#onClear" styleClass="tertiary-action-button" text="Limpiar">
+            <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
         </Button>
     </HBox>
 
     <!-- === ZONA 3: RESULTADOS === -->
-    <VBox VBox.vgrow="ALWAYS" spacing="5">
+    <VBox VBox.vgrow="ALWAYS" spacing="5" style="-fx-padding: 10 0 0 0;">
         <Label text="2. Resultados del Análisis" styleClass="subtitle-label"/>
-        <!-- Usamos un ScrollPane para que el TextArea no domine la vista y se pueda desplazar -->
         <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
-            <TextArea fx:id="resultArea" editable="false" wrapText="true"/>
+            <content>
+                <TextArea fx:id="resultArea" editable="false" wrapText="true"/>
+            </content>
         </ScrollPane>
     </VBox>
 </VBox>

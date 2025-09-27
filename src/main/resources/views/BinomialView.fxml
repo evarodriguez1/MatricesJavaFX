@@ -4,22 +4,13 @@
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<!--
-    Vista para la Calculadora de Distribución Binomial.
-    Estructurada en 3 zonas: Entradas, Acciones y Salidas.
-    Introduce la visualización gráfica (BarChart) y la iconografía.
-    Es la plantilla de diseño para todas las vistas de cálculo.
--->
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.BinomialController"
+<!-- Vista Binomial - Versión 2.3 CORREGIDA (Entidades XML en Tooltips) -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.calculos.controllers.BinomialController"
       spacing="15" styleClass="tab-content-area">
     <padding>
         <Insets top="10" right="20" bottom="20" left="20"/>
@@ -28,12 +19,16 @@
     <!-- === ZONA 1: PARÁMETROS DE ENTRADA === -->
     <VBox spacing="10" styleClass="content-pane">
         <Label text="1. Parámetros de la Distribución" styleClass="subtitle-label"/>
-        <GridPane hgap="10" vgap="10">
+        <GridPane hgap="15" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" minWidth="180"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+
             <Label text="Total de Ensayos (n):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
             <TextField fx:id="nField" promptText="Ej: 10" GridPane.columnIndex="1" GridPane.rowIndex="0">
                 <tooltip><Tooltip text="Número total de veces que se repite el experimento (debe ser un entero positivo)."/></tooltip>
             </TextField>
-
             <Label text="Probabilidad de Éxito (p):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
             <TextField fx:id="pField" promptText="Ej: 0.5" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <tooltip><Tooltip text="La probabilidad de que ocurra un 'éxito' en un solo ensayo (un número entre 0 y 1)."/></tooltip>
@@ -46,6 +41,11 @@
         <ComboBox fx:id="calculationTypeComboBox" prefWidth="Infinity"/>
 
         <GridPane hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" minWidth="180"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+
             <Label text="Valor de k / a:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
             <TextField fx:id="k1Field" promptText="Éxitos deseados" GridPane.columnIndex="1" GridPane.rowIndex="0">
                 <tooltip><Tooltip text="Número de éxitos a evaluar (debe ser un entero no negativo)."/></tooltip>
@@ -53,14 +53,15 @@
 
             <Label fx:id="k2Label" text="Valor de b:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
             <TextField fx:id="k2Field" promptText="Límite superior del rango" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                <tooltip><Tooltip text="Límite superior para el cálculo de rango P(a <= X <= b)."/></tooltip>
+                <!-- CORRECCIÓN CLAVE: Uso de &lt; para el carácter '<' -->
+                <tooltip><Tooltip text="Límite superior para el cálculo de rango P(a &lt;= X &lt;= b)."/></tooltip>
             </TextField>
         </GridPane>
     </VBox>
 
     <!-- === ZONA 2: ACCIONES === -->
     <HBox spacing="15" alignment="CENTER_RIGHT">
-        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar">
+        <Button onAction="#onClear" styleClass="tertiary-action-button" text="Limpiar">
             <graphic><FontIcon iconLiteral="mdi2b-broom" iconSize="18"/></graphic>
         </Button>
         <Button onAction="#onSolve" styleClass="primary-action-button" text="Calcular">
@@ -70,18 +71,15 @@
 
     <!-- === ZONA 3: RESULTADOS Y VISUALIZACIÓN === -->
     <HBox spacing="20" VBox.vgrow="ALWAYS">
-        <!-- Panel Izquierdo: Resultados Numéricos -->
-        <VBox HBox.hgrow="NEVER">
+        <VBox HBox.hgrow="NEVER" spacing="5">
             <Label text="Resultados Numéricos" styleClass="subtitle-label"/>
-            <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="250" prefWidth="300"/>
+            <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="250" prefWidth="320"/>
         </VBox>
-
-        <!-- Panel Derecho: Visualización Gráfica -->
-        <VBox HBox.hgrow="ALWAYS">
+        <VBox HBox.hgrow="ALWAYS" spacing="5">
             <Label text="Visualización de la Distribución" styleClass="subtitle-label"/>
-            <BarChart fx:id="distributionChart" animated="false">
-                <xAxis> <CategoryAxis label="Número de Éxitos (k)"/> </xAxis>
-                <yAxis> <NumberAxis label="Probabilidad P(X=k)"/> </yAxis>
+            <BarChart fx:id="distributionChart" animated="false" legendVisible="false">
+                <xAxis> <CategoryAxis label="Número de Éxitos (k)" side="BOTTOM"/> </xAxis>
+                <yAxis> <NumberAxis label="Probabilidad P(X=k)" side="LEFT"/> </yAxis>
             </BarChart>
         </VBox>
     </HBox>

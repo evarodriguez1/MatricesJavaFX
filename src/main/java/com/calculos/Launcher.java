@@ -7,36 +7,37 @@ import javafx.stage.Stage;
 
 /**
  * Clase principal que lanza la aplicación.
- * Su única responsabilidad es iniciar el entorno de JavaFX,
- * instanciar el NavigationManager y delegar el control de la
- * primera vista a este.
+ * Establece las propiedades de la ventana principal y delega
+ * el control de la navegación al NavigationManager.
  */
 public class Launcher extends Application {
 
-    /**
-     * El punto de entrada estándar para una aplicación Java.
-     */
+    // Definimos las dimensiones estándar de la aplicación como constantes.
+    private static final double APP_WIDTH = 900;
+    private static final double APP_HEIGHT = 700;
+
     public static void main(String[] args) {
         launch(args);
     }
 
-    /**
-     * El método de inicio del ciclo de vida de JavaFX.
-     * Este método se llama después de que el sistema de JavaFX está inicializado.
-     *
-     * @param primaryStage La ventana principal (Stage) creada automáticamente por el framework.
-     */
     @Override
     public void start(Stage primaryStage) {
-        // 1. Instanciar nuestro gestor de navegación, entregándole el control de la ventana.
+        // 1. Instanciar nuestro gestor de navegación.
         NavigationManager navigationManager = new NavigationManager(primaryStage);
 
-        // 2. Navegar a la vista inicial de la aplicación.
+        // 2. Configurar las propiedades de la ventana (Stage).
+        primaryStage.setTitle("Calculadora de Matemática Aplicada");
+        primaryStage.setWidth(APP_WIDTH);
+        primaryStage.setHeight(APP_HEIGHT);
+        primaryStage.setMinWidth(APP_WIDTH); // Fija el tamaño
+        primaryStage.setMinHeight(APP_HEIGHT);
+        primaryStage.setResizable(false); // Prohíbe al usuario redimensionar
+
+        // 3. Navegar a la vista inicial.
         navigationManager.navigateTo(View.ROOT);
 
-        // 3. Configurar y mostrar la ventana principal.
-        primaryStage.setMinWidth(600); // Evita que la ventana sea demasiado pequeña
-        primaryStage.setMinHeight(400);
+        // 4. Mostrar la ventana ya configurada.
         primaryStage.show();
+        primaryStage.centerOnScreen(); // Centrar después de mostrar para mejor precisión
     }
 }

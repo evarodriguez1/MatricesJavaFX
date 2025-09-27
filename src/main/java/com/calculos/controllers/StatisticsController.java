@@ -3,6 +3,7 @@ package com.calculos.controllers;
 import com.calculos.models.DataSet;
 import com.calculos.utils.InputValidator;
 import com.calculos.utils.exceptions.ValidationException;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
@@ -15,10 +16,12 @@ import java.util.stream.Collectors;
 
 /**
  * Controlador para la vista de Estadística Descriptiva.
- * Gestiona la entrada de datos, delega la validación y el parseo a métodos especializados,
- * crea un objeto de dominio {@link DataSet} para los cálculos y formatea los resultados para la UI.
+ * Implementa una UI reactiva que guía al usuario y utiliza el modelo
+ * de dominio {@link DataSet} para realizar y presentar análisis estadísticos complejos.
+ *
+ * @author Tu Nombre (Equipo de Desarrollo)
  */
-public class StatisticsController extends BaseController {
+public final class StatisticsController extends BaseController {
 
     // --- Componentes FXML de la Vista ---
     @FXML private ComboBox<DataType> dataTypeComboBox;
@@ -26,41 +29,53 @@ public class StatisticsController extends BaseController {
     @FXML private ComboBox<ResultType> resultTypeComboBox;
     @FXML private TextArea resultArea;
 
-    // Estado del controlador: guarda el último conjunto de datos válido.
-    private DataSet currentDataSet;
-
-    /**
-     * Enum interno para los tipos de datos.
-     */
     private enum DataType {
-        CONTINUOUS("Continuos"), DISCRETE("Discretos");
+        CONTINUOUS("Continuos"),
+        DISCRETE("Discretos");
+
         private final String displayName;
         DataType(String name) { this.displayName = name; }
         @Override public String toString() { return displayName; }
     }
 
-    /**
-     * Enum interno para los tipos de resultados.
-     */
     private enum ResultType {
         POSITION("Medidas de Posición"),
         DISPERSION("Medidas de Dispersión"),
         FREQUENCIES("Tabla de Frecuencias");
+
         private final String displayName;
         ResultType(String name) { this.displayName = name; }
         @Override public String toString() { return displayName; }
     }
 
     /**
-     * Configura el estado inicial de la vista.
+     * Configura el estado inicial de la vista y, crucialmente, los listeners
+     * para crear una experiencia de usuario reactiva.
      */
     @FXML
     public void initialize() {
+        // --- Configuración Inicial ---
         dataTypeComboBox.getItems().setAll(DataType.values());
-        dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
-
         resultTypeComboBox.getItems().setAll(ResultType.values());
-        resultTypeComboBox.setPromptText("Calcular una medida específica...");
+        resultTypeComboBox.setPromptText("Calcular sección específica...");
+
+        // --- Lógica de UI Reactiva ---
+        // Se crea un listener que se dispara CADA VEZ que el valor del ComboBox cambia.
+        dataTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                // Habilita el campo de texto cuando se selecciona un tipo.
+                dataInputField.setDisable(false);
+                // Cambia el promptText dinámicamente según la selección.
+                if (newVal == DataType.DISCRETE) {
+                    dataInputField.setPromptText("Ej: 1 5 12 9 5 ...");
+                } else { // CONTINUOUS
+                    dataInputField.setPromptText("Ej: 1.52 5.3 12.01 9.8 ...");
+                }
+            }
+        });
+
+        // CORRECCIÓN DEL BUG: Establecer el valor inicial DESPUÉS de añadir el listener.
+        dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
     }
 
     /**
@@ -69,19 +84,18 @@ public class StatisticsController extends BaseController {
     @FXML
     private void onSolveAll() {
         try {
-            currentDataSet = createDataSetFromInput();
+            DataSet dataSet = createDataSetFromInput();
 
             StringBuilder sb = new StringBuilder();
-            sb.append(formatDataSetInfo(currentDataSet));
+            sb.append(formatDataSetInfo(dataSet));
             sb.append("\n======================================\n\n");
-            sb.append(formatPositionMeasures(currentDataSet));
+            sb.append(formatPositionMeasures(dataSet));
             sb.append("\n======================================\n\n");
-            sb.append(formatDispersionMeasures(currentDataSet));
+            sb.append(formatDispersionMeasures(dataSet));
             sb.append("\n======================================\n\n");
-            sb.append(formatFrequenciesTable(currentDataSet));
+            sb.append(formatFrequenciesTable(dataSet));
 
             resultArea.setText(sb.toString());
-
         } catch (ValidationException e) {
             handleValidationException(e);
         } catch (Exception e) {
@@ -96,24 +110,19 @@ public class StatisticsController extends BaseController {
     private void onSolveSpecific() {
         ResultType selectedType = resultTypeComboBox.getValue();
         if (selectedType == null) {
-            // No usamos popup, es una no-acción
+            handleValidationException(new ValidationException("Por favor, selecciona una sección para calcular."));
             return;
         }
-
         try {
-            // Revalida los datos si el campo de texto ha sido modificado
-            if (currentDataSet == null) {
-                currentDataSet = createDataSetFromInput();
-            }
+            DataSet dataSet = createDataSetFromInput();
 
             String resultText = switch(selectedType) {
-                case POSITION -> formatPositionMeasures(currentDataSet);
-                case DISPERSION -> formatDispersionMeasures(currentDataSet);
-                case FREQUENCIES -> formatFrequenciesTable(currentDataSet);
+                case POSITION -> formatPositionMeasures(dataSet);
+                case DISPERSION -> formatDispersionMeasures(dataSet);
+                case FREQUENCIES -> formatFrequenciesTable(dataSet);
             };
 
             resultArea.setText(resultText);
-
         } catch (ValidationException e) {
             handleValidationException(e);
         } catch (Exception e) {
@@ -128,7 +137,9 @@ public class StatisticsController extends BaseController {
     private void onClear() {
         dataInputField.clear();
         resultArea.clear();
-        currentDataSet = null; // Borra los datos en memoria
+        // Al resetear, también deshabilitamos el campo de texto.
+        dataInputField.setDisable(true);
+        dataInputField.setPromptText("Selecciona un Tipo de Datos para empezar...");
         dataTypeComboBox.getSelectionModel().select(DataType.CONTINUOUS);
         resultTypeComboBox.getSelectionModel().clearSelection();
     }
@@ -143,14 +154,15 @@ public class StatisticsController extends BaseController {
 
         DataType dataType = dataTypeComboBox.getValue();
         List<Double> numbers = new ArrayList<>();
-        // Usa una expresión regular para dividir por uno o más espacios, comas o saltos de línea.
+        // Expresión regular robusta para dividir por espacios, comas, punto y coma o saltos de línea.
         String[] parts = input.trim().split("[\\s,;\\n]+");
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
-            double value = InputValidator.parseDouble(part, "Datos de entrada");
+            // Usamos parseDouble que ya maneja comas/puntos
+            double value = InputValidator.parseDouble(part, "Dato de entrada");
             if (dataType == DataType.DISCRETE && value % 1 != 0) {
-                throw new ValidationException("Se seleccionó 'Discretos', pero se encontró el valor no entero: " + value);
+                throw new ValidationException("Tipo de dato 'Discreto' seleccionado, pero se encontró el valor no entero: " + value);
             }
             numbers.add(value);
         }
@@ -159,6 +171,7 @@ public class StatisticsController extends BaseController {
             throw new ValidationException("No se detectaron números válidos en la entrada.");
         }
 
+        // El constructor de DataSet se encarga de la ordenación y validación final.
         return new DataSet(numbers);
     }
 
@@ -174,7 +187,7 @@ public class StatisticsController extends BaseController {
                 .map(d -> String.format("%.2f", d))
                 .collect(Collectors.joining(", "));
         if (dataSet.getSize() > 20) {
-            sortedDataPreview += ", ...";
+            sortedDataPreview += ", ... y más";
         }
         sb.append(String.format("Primeros Datos Ordenados: %s", sortedDataPreview));
         return sb.toString();

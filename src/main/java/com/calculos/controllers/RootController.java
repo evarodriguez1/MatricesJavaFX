@@ -4,15 +4,20 @@ import com.calculos.navigation.View;
 import javafx.fxml.FXML;
 
 /**
- * Controlador para la vista principal (RootView.fxml).
- * Actúa como el menú de navegación principal de la aplicación.
- * Hereda de BaseController para obtener la funcionalidad de navegación.
+ * Controlador para la vista principal de la aplicación (RootView.fxml).
+ * Actúa como el menú de navegación central, proporcionando puntos de entrada
+ * a los diferentes módulos de cálculo (Estadísticas, Probabilidades, Matrices).
+ * Hereda de {@link BaseController} para obtener la funcionalidad de navegación
+ * inyectada por {@link com.calculos.navigation.NavigationManager}.
+ *
+ * @author Tu Nombre (Equipo de Desarrollo)
  */
-public class RootController extends BaseController {
+public final class RootController extends BaseController {
 
     /**
-     * Navega a la vista de Estadísticas cuando se presiona el botón correspondiente.
-     * Delega toda la lógica de navegación al NavigationManager.
+     * Navega al Módulo de Estadística Descriptiva.
+     * Este método se invoca al hacer clic en el botón correspondiente en la UI.
+     * Delega toda la lógica de carga y presentación de la vista al NavigationManager.
      */
     @FXML
     private void openStatisticsView() {
@@ -20,7 +25,8 @@ public class RootController extends BaseController {
     }
 
     /**
-     * Navega a la vista de Probabilidades cuando se presiona el botón correspondiente.
+     * Navega al Módulo de Probabilidades.
+     * Este método se invoca al hacer clic en el botón correspondiente en la UI.
      */
     @FXML
     private void openProbabilityView() {
@@ -28,7 +34,8 @@ public class RootController extends BaseController {
     }
 
     /**
-     * Navega a la vista de Matrices cuando se presiona el botón correspondiente.
+     * Navega al Módulo de Resolución de Matrices.
+     * Este método se invoca al hacer clic en el botón correspondiente en la UI.
      */
     @FXML
     private void openMatrixView() {

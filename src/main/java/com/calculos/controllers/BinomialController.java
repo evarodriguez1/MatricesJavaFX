@@ -14,21 +14,22 @@ import java.util.stream.IntStream;
 
 /**
  * Controlador para la vista de la Distribución Binomial.
- * Gestiona la interacción del usuario, la validación de entradas y la
- * presentación de resultados, delegando los cálculos al modelo BinomialDistribution.
- * Hereda de BaseController para funcionalidad común de navegación y manejo de errores.
+ * Implementa la arquitectura estándar de Controlador Delgado (Thin Controller),
+ * gestiona una UI reactiva y presenta los resultados de forma numérica y gráfica.
+ *
+ * @author Tu Nombre (Equipo de Desarrollo)
  */
-public class BinomialController extends BaseController {
+public final class BinomialController extends BaseController {
 
     // --- Componentes FXML de la Vista ---
     @FXML private TextField nField;
     @FXML private TextField pField;
     @FXML private ComboBox<CalculationType> calculationTypeComboBox;
     @FXML private TextField k1Field;
-    @FXML private Label k2Label; // Etiqueta del segundo campo
+    @FXML private Label k2Label;
     @FXML private TextField k2Field;
     @FXML private TextArea resultArea;
-    @FXML private BarChart<String, Number> distributionChart; // Gráfica para visualización
+    @FXML private BarChart<String, Number> distributionChart;
 
     /**
      * Enum interno para representar los tipos de cálculo de forma segura y expresiva.
@@ -54,49 +55,38 @@ public class BinomialController extends BaseController {
     }
 
     /**
-     * Se ejecuta una vez que los componentes FXML han sido inyectados.
-     * Configura el estado inicial de la vista y los listeners.
+     * Configura el estado inicial de la vista y los listeners de UI reactiva.
      */
     @FXML
     public void initialize() {
-        // 1. Configurar el ComboBox
         calculationTypeComboBox.getItems().setAll(CalculationType.values());
         calculationTypeComboBox.getSelectionModel().selectFirst();
 
-        // 2. Configurar la UI Reactiva (Data Binding)
-        // La visibilidad del segundo campo de k (k2Field) depende de la selección.
         k2Label.visibleProperty().bind(calculationTypeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(CalculationType.RANGE));
         k2Field.visibleProperty().bind(calculationTypeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(CalculationType.RANGE));
+
+        distributionChart.setLegendVisible(false);
     }
 
     /**
-     * Maneja el evento de clic en el botón "Calcular". Orquesta el flujo de
-     * validación, cálculo y presentación.
+     * Orquesta el flujo de cálculo al presionar el botón de "Resolver".
      */
     @FXML
     private void onSolve() {
         try {
-            // Paso 1: Leer y validar todas las entradas del usuario.
             UserInput inputs = readAndValidateUserInput();
-
-            // Paso 2: Crear el objeto de dominio del modelo.
             BinomialDistribution dist = new BinomialDistribution(inputs.n(), inputs.p());
-
-            // Paso 3: Realizar todos los cálculos necesarios.
             CalculationResult results = calculateResults(dist, inputs);
-
-            // Paso 4: Actualizar la UI con los resultados.
-            displayResults(results, dist, inputs);
-
-        } catch (ValidationException e) {
-            handleValidationException(e);
+            displayResults(results, dist);
+        } catch (ValidationException | IllegalArgumentException e) {
+            handleValidationException(new ValidationException(e.getMessage()));
         } catch (Exception e) {
             handleGenericException(e);
         }
     }
 
     /**
-     * Limpia todos los campos de entrada y los resultados a su estado inicial.
+     * Limpia todos los campos de la interfaz a su estado inicial.
      */
     @FXML
     private void onClear() {
@@ -111,11 +101,6 @@ public class BinomialController extends BaseController {
 
     // --- Métodos Auxiliares Descompuestos ---
 
-    /**
-     * Parsea y valida todas las entradas de la UI y las empaqueta en un objeto.
-     * @return un record UserInput con los datos validados.
-     * @throws ValidationException si alguna entrada es inválida.
-     */
     private UserInput readAndValidateUserInput() throws ValidationException {
         int n = InputValidator.parsePositiveInt(nField.getText(), "N (Total Ensayos)");
         double p = InputValidator.parseDoubleInRange(pField.getText(), "P (Prob. Éxito)", 0.0, 1.0);
@@ -123,20 +108,18 @@ public class BinomialController extends BaseController {
         CalculationType selectedType = Objects.requireNonNull(calculationTypeComboBox.getValue(), "Tipo de cálculo no seleccionado.");
 
         int k1 = InputValidator.parseNonNegativeInt(k1Field.getText(), "Valor de k/a");
-        int k2 = 0; // Valor por defecto
-        if (selectedType.requiredFields == 2) {
+        int k2 = 0;
+        if (selectedType == CalculationType.RANGE) {
             k2 = InputValidator.parseNonNegativeInt(k2Field.getText(), "Valor de b");
         }
 
         return new UserInput(n, p, selectedType, k1, k2);
     }
 
-    /**
-     * Realiza el cálculo de probabilidad apropiado basado en la selección del usuario.
-     * @return un record CalculationResult con la probabilidad calculada.
-     */
     private CalculationResult calculateResults(BinomialDistribution dist, UserInput inputs) throws ValidationException {
-        int desde, hasta;
+        int desde;
+        int hasta;
+
         switch (inputs.type()) {
             case EXACT -> desde = hasta = inputs.k1();
             case MAXIMUM -> {
@@ -151,39 +134,26 @@ public class BinomialController extends BaseController {
                 desde = inputs.k1();
                 hasta = inputs.k2();
             }
-            default -> throw new IllegalStateException("Tipo de cálculo inesperado.");
+            default -> throw new IllegalStateException("Tipo de cálculo inesperado: " + inputs.type());
+        }
+
+        if (desde > hasta) {
+            throw new ValidationException("El valor 'desde' (" + desde + ") no puede ser mayor que 'hasta' (" + hasta + ").");
         }
 
         double probability = dist.getProbabilityRange(desde, hasta);
         return new CalculationResult(probability, desde, hasta);
     }
 
-    /**
-     * Actualiza la UI (TextArea y Gráfica) con los resultados finales.
-     */
-    private void displayResults(CalculationResult result, BinomialDistribution dist, UserInput inputs) {
+    private void displayResults(CalculationResult result, BinomialDistribution dist) {
         resultArea.setText(formatResultText(result, dist));
         updateDistributionChart(dist, result);
     }
 
-    /**
-     * Formatea el texto de salida para el TextArea.
-     */
     private String formatResultText(CalculationResult result, BinomialDistribution dist) {
+        String probDescription = getProbabilityDescription(result);
+
         StringBuilder sb = new StringBuilder();
-        String probDescription;
-        CalculationType type = calculationTypeComboBox.getValue();
-
-        if (type == CalculationType.EXACT) {
-            probDescription = String.format("P(X = %d)", result.from());
-        } else if (type == CalculationType.MAXIMUM) {
-            probDescription = String.format("P(X <= %d)", result.to());
-        } else if (type == CalculationType.MINIMUM) {
-            probDescription = String.format("P(X >= %d)", result.from());
-        } else {
-            probDescription = String.format("P(%d <= X <= %d)", result.from(), result.to());
-        }
-
         sb.append(String.format("PROBABILIDAD %s:\n", probDescription));
         sb.append(String.format("Resultado: %.8f\n", result.probability()));
         sb.append(String.format("Porcentaje: %.2f%%\n", result.probability() * 100));
@@ -195,19 +165,28 @@ public class BinomialController extends BaseController {
         return sb.toString();
     }
 
-    /**
-     * Actualiza la gráfica de barras para mostrar la distribución de probabilidad completa.
-     * Resalta las barras que corresponden al rango calculado.
-     */
+    private String getProbabilityDescription(CalculationResult result) {
+        return switch (calculationTypeComboBox.getValue()) {
+            case EXACT -> String.format("P(X = %d)", result.from());
+            case MAXIMUM -> String.format("P(X <= %d)", result.to());
+            case MINIMUM -> String.format("P(X >= %d)", result.from());
+            case RANGE -> String.format("P(%d <= X <= %d)", result.from(), result.to());
+        };
+    }
+
     private void updateDistributionChart(BinomialDistribution dist, CalculationResult result) {
         distributionChart.getData().clear();
-        distributionChart.setAnimated(false);
+        distributionChart.setAnimated(true);
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("P(X=k)");
 
         Map<Integer, Double> fullDist = dist.getFullDistribution();
 
-        IntStream.rangeClosed(0, dist.getMean() * 2 > 10 ? (int)(dist.getMean() * 2) : 10)
+        // Determina un límite superior razonable para la gráfica para no sobrecargarla.
+        int upperLimit = (int) Math.max(20, dist.getMean() + 4 * Math.sqrt(dist.getVariance()));
+        int domainLimit = fullDist.keySet().stream().mapToInt(v->v).max().orElse(0);
+        upperLimit = Math.min(upperLimit, domainLimit);
+
+        IntStream.rangeClosed(0, upperLimit)
                 .forEach(k -> {
                     XYChart.Data<String, Number> data = new XYChart.Data<>(String.valueOf(k), fullDist.getOrDefault(k, 0.0));
                     series.getData().add(data);
@@ -215,26 +194,17 @@ public class BinomialController extends BaseController {
 
         distributionChart.getData().add(series);
 
-        // Resaltar barras del resultado
-        for(XYChart.Data<String, Number> data : series.getData()) {
+        for (XYChart.Data<String, Number> data : series.getData()) {
             int k = Integer.parseInt(data.getXValue());
             if (k >= result.from() && k <= result.to()) {
-                data.getNode().setStyle("-fx-bar-fill: #FFD600;"); // Color de resaltado (amarillo)
+                data.getNode().setStyle("-fx-bar-fill: #FFD600;");
             } else {
-                data.getNode().setStyle("-fx-bar-fill: #4A148C;"); // Color normal (morado oscuro)
+                data.getNode().setStyle("-fx-bar-fill: #6A1B9A;");
             }
         }
+        distributionChart.setAnimated(false);
     }
 
-    // --- Records Internos para una mejor estructura de datos ---
-
-    /**
-     * Un record para empaquetar de forma inmutable la entrada del usuario después de la validación.
-     */
     private record UserInput(int n, double p, CalculationType type, int k1, int k2) {}
-
-    /**
-     * Un record para empaquetar de forma inmutable los resultados del cálculo.
-     */
     private record CalculationResult(double probability, int from, int to) {}
 }

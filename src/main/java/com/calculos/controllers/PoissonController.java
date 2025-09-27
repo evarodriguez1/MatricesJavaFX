@@ -15,9 +15,11 @@ import java.util.stream.IntStream;
 /**
  * Controlador para la vista de la Distribución de Poisson.
  * Gestiona la UI, valida la entrada, delega los cálculos al modelo PoissonDistribution
- * y presenta los resultados de forma numérica y gráfica.
+ * y presenta los resultados de forma numérica y gráfica. Sigue el patrón MVC de élite.
+ *
+ * @author Tu Nombre (Equipo de Desarrollo)
  */
-public class PoissonController extends BaseController {
+public final class PoissonController extends BaseController {
 
     // --- Componentes FXML de la Vista ---
     @FXML private TextField lambdaField;
@@ -29,7 +31,7 @@ public class PoissonController extends BaseController {
     @FXML private BarChart<String, Number> distributionChart;
 
     /**
-     * Enum interno para los tipos de cálculo.
+     * Enum interno para representar los tipos de cálculo de forma segura y expresiva.
      */
     private enum CalculationType {
         EXACT("P(X = k) - Exacto"),
@@ -43,7 +45,7 @@ public class PoissonController extends BaseController {
     }
 
     /**
-     * Configura el estado inicial de la vista y los bindings.
+     * Configura el estado inicial de la vista y los bindings de la UI reactiva.
      */
     @FXML
     public void initialize() {
@@ -52,10 +54,12 @@ public class PoissonController extends BaseController {
 
         k2Label.visibleProperty().bind(calculationTypeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(CalculationType.RANGE));
         k2Field.visibleProperty().bind(calculationTypeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(CalculationType.RANGE));
+
+        distributionChart.setLegendVisible(false);
     }
 
     /**
-     * Orquesta el flujo de cálculo al presionar el botón.
+     * Orquesta el flujo de cálculo al presionar el botón de "Resolver".
      */
     @FXML
     private void onSolve() {
@@ -64,15 +68,15 @@ public class PoissonController extends BaseController {
             PoissonDistribution dist = new PoissonDistribution(inputs.lambda());
             CalculationResult result = calculateResults(dist, inputs);
             displayResults(result, dist);
-        } catch (ValidationException e) {
-            handleValidationException(e);
+        } catch (ValidationException | IllegalArgumentException e) {
+            handleValidationException(new ValidationException(e.getMessage()));
         } catch (Exception e) {
             handleGenericException(e);
         }
     }
 
     /**
-     * Limpia todos los campos a su estado por defecto.
+     * Limpia todos los campos de la interfaz a su estado inicial.
      */
     @FXML
     private void onClear() {
@@ -94,7 +98,7 @@ public class PoissonController extends BaseController {
 
         CalculationType type = Objects.requireNonNull(calculationTypeComboBox.getValue());
 
-        int k1 = InputValidator.parseNonNegativeInt(k1Field.getText(), "Valor de k/a");
+        int k1 = InputValidator.parseNonNegativeInt(k1Field.getText(), "Ocurrencias (k/a)");
         int k2 = 0;
         if (type == CalculationType.RANGE) {
             k2 = InputValidator.parseNonNegativeInt(k2Field.getText(), "Valor de b");
@@ -105,29 +109,30 @@ public class PoissonController extends BaseController {
 
     private CalculationResult calculateResults(PoissonDistribution dist, UserInput inputs) throws ValidationException {
         double probability;
-        int from = inputs.k1(), to = inputs.k2();
+        int from = inputs.k1();
+        int to = (inputs.type() == CalculationType.RANGE) ? inputs.k2() : inputs.k1(); // 'to' inicial
 
         switch (inputs.type()) {
             case EXACT:
-                probability = dist.getProbabilityAt(inputs.k1());
+                probability = dist.getProbabilityAt(from);
                 to = from;
                 break;
             case MAXIMUM:
-                probability = dist.getProbabilityRange(0, inputs.k1());
+                probability = dist.getProbabilityRange(0, from);
+                to = from; // 'to' es k1
                 from = 0;
-                to = inputs.k1();
                 break;
             case MINIMUM:
-                probability = dist.getComplementaryProbability(inputs.k1());
+                probability = dist.getComplementaryProbability(from);
                 break;
             case RANGE:
-                if (inputs.k1() > inputs.k2()) {
-                    throw new ValidationException("'Desde' no puede ser mayor que 'Hasta'.");
+                if (from > to) {
+                    throw new ValidationException("'Desde' (" + from + ") no puede ser mayor que 'hasta' (" + to + ").");
                 }
-                probability = dist.getProbabilityRange(inputs.k1(), inputs.k2());
+                probability = dist.getProbabilityRange(from, to);
                 break;
             default:
-                throw new IllegalStateException("Tipo de cálculo inesperado.");
+                throw new IllegalStateException("Tipo de cálculo inesperado: " + inputs.type());
         }
         return new CalculationResult(probability, from, to);
     }
@@ -165,12 +170,11 @@ public class PoissonController extends BaseController {
 
     private void updateDistributionChart(PoissonDistribution dist, CalculationResult result) {
         distributionChart.getData().clear();
-        distributionChart.setAnimated(false);
+        distributionChart.setAnimated(true);
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("P(X=k)");
 
         Map<Integer, Double> fullDist = dist.getDistributionForGraphing();
-        int limit = fullDist.keySet().stream().max(Integer::compareTo).orElse(0);
+        int limit = fullDist.keySet().stream().mapToInt(v -> v).max().orElse(0);
 
         IntStream.rangeClosed(0, limit)
                 .forEach(k -> {
@@ -180,27 +184,26 @@ public class PoissonController extends BaseController {
 
         distributionChart.getData().add(series);
 
-        // Resaltar barras
         for(XYChart.Data<String, Number> data : series.getData()) {
             int k = Integer.parseInt(data.getXValue());
             CalculationType type = calculationTypeComboBox.getValue();
-            boolean isInRange = switch(type) {
-                case EXACT, MINIMUM -> k == result.from();
+
+            boolean shouldHighlight = switch(type) {
+                case EXACT -> k == result.from();
                 case MAXIMUM -> k <= result.to();
+                case MINIMUM -> k >= result.from();
                 case RANGE -> k >= result.from() && k <= result.to();
             };
 
-            if (type == CalculationType.MINIMUM && k >= result.from()) {
-                data.getNode().setStyle("-fx-bar-fill: #FFD600;"); // Pintar la cola
-            } else if (isInRange) {
+            if (shouldHighlight) {
                 data.getNode().setStyle("-fx-bar-fill: #FFD600;");
             } else {
-                data.getNode().setStyle("-fx-bar-fill: #4A148C;");
+                data.getNode().setStyle("-fx-bar-fill: #6A1B9A;");
             }
         }
+        distributionChart.setAnimated(false);
     }
 
-    // --- Records Internos ---
     private record UserInput(double lambda, CalculationType type, int k1, int k2) {}
     private record CalculationResult(double probability, int from, int to) {}
 }

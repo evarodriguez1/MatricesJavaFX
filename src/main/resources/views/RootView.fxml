@@ -3,57 +3,64 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <!--
     Vista del Menú Principal (Root).
-    Utiliza una VBox como contenedor principal y aplica los nuevos estilos
-    de jerarquía de texto y botones. Los iconos se añaden a través
-    de la dependencia Ikonli.
+    Se utiliza un AnchorPane como raíz absoluta
+    para asegurar que el fondo se aplique a toda la ventana. El VBox principal
+    está anclado a los cuatro bordes del AnchorPane, eliminando el bug
+    visual de la "línea blanca".
 -->
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.RootController"
-      alignment="CENTER" spacing="30" styleClass="root">
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.calculos.controllers.RootController"
+            styleClass="root">
 
-    <padding>
-        <Insets top="50" right="50" bottom="50" left="50"/>
-    </padding>
+    <VBox alignment="CENTER" spacing="30"
+          AnchorPane.topAnchor="0.0" AnchorPane.rightAnchor="0.0"
+          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
 
-    <!-- TÍTULO PRINCIPAL DE LA APLICACIÓN -->
-    <Label text="Calculadora de Matemática Aplicada" styleClass="title-label"/>
+        <padding>
+            <Insets top="50" right="50" bottom="50" left="50"/>
+        </padding>
 
-    <Label text="Selecciona el módulo con el que deseas trabajar:" styleClass="label">
-        <VBox.margin>
-            <Insets top="10" bottom="20"/>
-        </VBox.margin>
-    </Label>
+        <!-- TÍTULO PRINCIPAL DE LA APLICACIÓN -->
+        <Label text="Calculadora de Matemática Aplicada" styleClass="title-label"/>
 
-    <!-- CONTENEDOR DE BOTONES DE NAVEGACIÓN -->
-    <VBox spacing="20" alignment="CENTER" maxWidth="400">
+        <Label text="Selecciona el módulo con el que deseas trabajar:" styleClass="label">
+            <VBox.margin>
+                <Insets top="10" bottom="20"/>
+            </VBox.margin>
+        </Label>
 
-        <!-- Botón para Estadísticas -->
-        <Button text="Estadística Descriptiva" onAction="#openStatisticsView"
-                styleClass="primary-action-button" maxWidth="Infinity">
-            <graphic>
-                <FontIcon iconLiteral="mdi2c-chart-bar" iconSize="20"/>
-            </graphic>
-        </Button>
+        <!-- CONTENEDOR DE BOTONES DE NAVEGACIÓN -->
+        <VBox spacing="20" alignment="CENTER" maxWidth="400">
 
-        <!-- Botón para Probabilidades -->
-        <Button text="Cálculos de Probabilidad" onAction="#openProbabilityView"
-                styleClass="primary-action-button" maxWidth="Infinity">
-            <graphic>
-                <FontIcon iconLiteral="mdi2d-dice-multiple" iconSize="20"/>
-            </graphic>
-        </Button>
+            <!-- Botón para Estadísticas -->
+            <Button text="Estadística Descriptiva" onAction="#openStatisticsView"
+                    styleClass="primary-action-button" maxWidth="Infinity">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2c-chart-bar" iconSize="20"/>
+                </graphic>
+            </Button>
 
-        <!-- Botón para Matrices -->
-        <Button text="Resolución de Matrices" onAction="#openMatrixView"
-                styleClass="primary-action-button" maxWidth="Infinity">
-            <graphic>
-                <FontIcon iconLiteral="mdi2m-matrix" iconSize="20"/>
-            </graphic>
-        </Button>
+            <!-- Botón para Probabilidades -->
+            <Button text="Cálculos de Probabilidad" onAction="#openProbabilityView"
+                    styleClass="primary-action-button" maxWidth="Infinity">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2d-dice-multiple" iconSize="20"/>
+                </graphic>
+            </Button>
 
+            <!-- Botón para Matrices -->
+            <Button text="Resolución de Matrices" onAction="#openMatrixView"
+                    styleClass="primary-action-button" maxWidth="Infinity">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2m-matrix" iconSize="20"/>
+                </graphic>
+            </Button>
+        </VBox>
     </VBox>
-</VBox>
+</AnchorPane>
