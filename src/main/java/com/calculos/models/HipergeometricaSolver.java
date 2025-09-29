@@ -4,8 +4,6 @@ import java.math.BigInteger;
 
 public class HipergeometricaSolver {
 
-    // --- Métodos Auxiliares (sin cambios) ---
-
     public static BigInteger factorial(int num) {
         if (num < 0) return BigInteger.ZERO;
         BigInteger resultado = BigInteger.ONE;
@@ -64,5 +62,17 @@ public class HipergeometricaSolver {
             }
         }
         return total;
+    }
+
+    public static double getEsperanza(int N, int K, int n) {
+        if (N == 0) return 0.0; // Evitar división por cero.
+        return n * ((double) K / N);
+    }
+
+    public static double getVarianza(int N, int K, int n) {
+        if (N <= 1) return 0.0; // La varianza es cero si no se puede formar la muestra.
+        double p = (double) K / N;
+        double factorCorreccion = (double) (N - n) / (N - 1);
+        return n * p * (1 - p) * factorCorreccion;
     }
 }

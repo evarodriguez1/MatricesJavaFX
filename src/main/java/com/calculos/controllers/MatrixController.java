@@ -9,80 +9,148 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class MatrixController {
 
+    // --- Inyección de Componentes FXML ---
     @FXML private TextField a11Field, a12Field, a13Field, b1Field;
     @FXML private TextField a21Field, a22Field, a23Field, b2Field;
     @FXML private TextField a31Field, a32Field, a33Field, b3Field;
     @FXML private TextArea resultArea;
 
+    // --- NUEVO: Lista para manejar todos los campos de forma eficiente ---
+    // Esta lista nos permite evitar repetir código para limpiar, rellenar o validar los campos.
+    private List<TextField> allMatrixFields;
+
+    /**
+     * El método initialize() es un método especial de JavaFX.
+     * Se ejecuta automáticamente después de que se cargue el FXML y se inyecten todos los campos @FXML.
+     * Es el lugar perfecto para realizar configuraciones iniciales.
+     */
+    @FXML
+    public void initialize() {
+        // Poblamos la lista con todos los TextFields de nuestra matriz.
+        allMatrixFields = Arrays.asList(
+                a11Field, a12Field, a13Field, b1Field,
+                a21Field, a22Field, a23Field, b2Field,
+                a31Field, a32Field, a33Field, b3Field
+        );
+    }
+
+    /**
+     * Resuelve el sistema de ecuaciones.
+     * AHORA INCLUYE FEEDBACK VISUAL PARA ERRORES.
+     */
     @FXML
     private void onSolve() {
+        // Limpiamos cualquier estilo de error previo en cada intento de resolver.
+        clearErrorStyles();
+
         try {
-            // Tomamos los valores de los TextFields y los convertimos a double
             double[][] A = {
                     {
-                            InputValidator.parseDouble(a11Field.getText(), "a11"),
-                            InputValidator.parseDouble(a12Field.getText(), "a12"),
-                            InputValidator.parseDouble(a13Field.getText(), "a13")
+                            getValidatedValue(a11Field, "A[1,1]"),
+                            getValidatedValue(a12Field, "A[1,2]"),
+                            getValidatedValue(a13Field, "A[1,3]")
                     },
                     {
-                            InputValidator.parseDouble(a21Field.getText(), "a21"),
-                            InputValidator.parseDouble(a22Field.getText(), "a22"),
-                            InputValidator.parseDouble(a23Field.getText(), "a23")
+                            getValidatedValue(a21Field, "A[2,1]"),
+                            getValidatedValue(a22Field, "A[2,2]"),
+                            getValidatedValue(a23Field, "A[2,3]")
                     },
                     {
-                            InputValidator.parseDouble(a31Field.getText(), "a31"),
-                            InputValidator.parseDouble(a32Field.getText(), "a32"),
-                            InputValidator.parseDouble(a33Field.getText(), "a33")
+                            getValidatedValue(a31Field, "A[3,1]"),
+                            getValidatedValue(a32Field, "A[3,2]"),
+                            getValidatedValue(a33Field, "A[3,3]")
                     }
             };
 
             double[] B = {
-                    InputValidator.parseDouble(b1Field.getText(), "b1"),
-                    InputValidator.parseDouble(b2Field.getText(), "b2"),
-                    InputValidator.parseDouble(b3Field.getText(), "b3")
+                    getValidatedValue(b1Field, "b[1]"),
+                    getValidatedValue(b2Field, "b[2]"),
+                    getValidatedValue(b3Field, "b[3]")
             };
 
-            // Calculamos la solución usando Gauss-Jordan
             String result = MatrixSolver.solveGaussJordan(A, B);
-
-            // Mostramos el resultado en el TextArea
             resultArea.setText(result);
 
-
         } catch (IllegalArgumentException ex) {
-            // Si hubo un error en la entrada, usamos un popup
+            // El helper 'getValidatedValue' ya se encargó de poner el campo en rojo.
+            // Aquí solo mostramos el popup con el mensaje de error.
             PopupManager.showError(ex.getMessage());
         }
     }
 
+    /**
+     * NUEVO MÉTODO: Rellena todas las celdas vacías con "0".
+     * Mejora la experiencia de usuario evitando errores por campos vacíos.
+     */
+    @FXML
+    private void onFillWithZeros() {
+        allMatrixFields.forEach(field -> {
+            if (field.getText().trim().isEmpty()) {
+                field.setText("0");
+            }
+        });
+    }
+
+    /**
+     * MÉTODO REFACTORIZADO: Limpia todos los campos de entrada y el resultado.
+     * Ahora es más mantenible gracias a nuestra lista 'allMatrixFields'.
+     */
     @FXML
     private void onClear() {
-        clearFields();
-    }
-
-    private void clearFields() {
-        a11Field.clear(); a12Field.clear(); a13Field.clear(); b1Field.clear();
-        a21Field.clear(); a22Field.clear(); a23Field.clear(); b2Field.clear();
-        a31Field.clear(); a32Field.clear(); a33Field.clear(); b3Field.clear();
-
-        // AÑADIDO: También limpiamos el área de resultados.
+        allMatrixFields.forEach(TextField::clear);
         resultArea.clear();
+        clearErrorStyles(); // También eliminamos los estilos de error al limpiar.
     }
 
+    /**
+     * Navega de vuelta al menú principal. Sin cambios funcionales.
+     */
     @FXML
     private void backToMenu() {
         try {
-            // Llama al método estático en MainApp para cambiar la escena
             MainApp.showMainMenuView();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             PopupManager.showError("Error al cargar el menú principal: " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
+    // =============================================================
+    // MÉTODOS DE AYUDA (Helpers) - Lógica Interna del Controlador
+    // =============================================================
+
+    /**
+     * NUEVO HELPER: Valida un campo de texto y proporciona feedback visual.
+     * Centraliza la lógica de validación y estilo.
+     *
+     * @param field     El TextField a validar.
+     * @param fieldName El nombre del campo para los mensajes de error.
+     * @return El valor double parseado.
+     * @throws IllegalArgumentException si la validación falla.
+     */
+    private double getValidatedValue(TextField field, String fieldName) {
+        try {
+            double value = InputValidator.parseDouble(field.getText(), fieldName);
+            // Si la validación es exitosa, nos aseguramos de que el campo no esté rojo.
+            field.getStyleClass().remove("error-field");
+            return value;
+        } catch (IllegalArgumentException e) {
+            // Si la validación falla, pintamos el campo de rojo.
+            field.getStyleClass().add("error-field");
+            // Y relanzamos la excepción para que el 'catch' de onSolve la capture y muestre el popup.
+            throw e;
+        }
+    }
+
+    /**
+     * NUEVO HELPER: Elimina la clase de error de todos los campos.
+     */
+    private void clearErrorStyles() {
+        allMatrixFields.forEach(field -> field.getStyleClass().remove("error-field"));
+    }
 }
