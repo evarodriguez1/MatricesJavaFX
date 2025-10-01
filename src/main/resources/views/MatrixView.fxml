@@ -63,6 +63,7 @@
         <HBox alignment="CENTER_LEFT" spacing="10">
             <Label styleClass="subtitle-label" text="Resultados del Análisis" />
             <Pane HBox.hgrow="ALWAYS" />
+            <Button fx:id="checkButton" onAction="#onCheckSolution" styleClass="secondary-button" text="Corroborar Solución ✔️" />
             <Button fx:id="showStepsButton" onAction="#onShowSteps" styleClass="secondary-button" text="Ver Paso a Paso ⚙️" />
         </HBox>
         <TextArea fx:id="resultArea" editable="false" styleClass="result-area" wrapText="true" VBox.vgrow="ALWAYS" />

@@ -28,10 +28,15 @@ public class MatrixController {
     @FXML private TextArea resultArea;
     @FXML private Button showStepsButton;
     @FXML private CheckBox useFractionsCheck;
+    @FXML private Button checkButton; // Agrega el ID para el nuevo botón
 
     private List<TextField> allMatrixFields;
     private TextField[][] gridFields; // Para navegación con flechas
     private String detailedSteps; // Para almacenar los pasos
+
+    private String[][] originalA_str;
+    private String[] originalB_str;
+    private String lastSolutionSummary;
 
     @FXML
     public void initialize() {
@@ -56,20 +61,33 @@ public class MatrixController {
 
         try {
             // AHORA LEEMOS COMO STRINGS para preservar la notación de fracción/decimal
-            String[][] A_str = {
+            String[][] A_temp = {
                     { getStringValue(a11Field), getStringValue(a12Field), getStringValue(a13Field) },
                     { getStringValue(a21Field), getStringValue(a22Field), getStringValue(a23Field) },
                     { getStringValue(a31Field), getStringValue(a32Field), getStringValue(a33Field) }
             };
 
-            String[] B_str = { getStringValue(b1Field), getStringValue(b2Field), getStringValue(b3Field) };
+            String[] B_temp = {
+                    getStringValue(b1Field), getStringValue(b2Field), getStringValue(b3Field)
+            };
+
+            // 2. Si llegamos aquí, los datos son válidos. Asignamos a las variables de instancia.
+            this.originalA_str = A_temp;
+            this.originalB_str = B_temp;
+
 
             // Llamada al método corregido que acepta Strings
-            MatrixSolver.SolveResult result = MatrixSolver.solveGaussJordan(A_str, B_str, useFractionsCheck.isSelected());
+            MatrixSolver.SolveResult result = MatrixSolver.solveGaussJordan(originalA_str, originalB_str, useFractionsCheck.isSelected());
 
             resultArea.setText(result.summary);
-            detailedSteps = result.steps; // Guardar los pasos
+            detailedSteps = result.steps;
+            lastSolutionSummary = result.summary; // Guardar el resumen para la verificación
+
             showStepsButton.setDisable(false); // Habilitar el botón
+
+            if (result.summary.startsWith("Sistema Compatible Determinado")) {
+                checkButton.setDisable(false);
+            }
 
         } catch (IllegalArgumentException ex) {
             // Mostrar error específico de validación
@@ -135,13 +153,41 @@ public class MatrixController {
         });
     }
 
+    // --- NUEVO MÉTODO PARA CORROBORACIÓN ---
+    @FXML
+    private void onCheckSolution() {
+        if (lastSolutionSummary == null || !lastSolutionSummary.startsWith("Sistema Compatible Determinado")) {
+            PopupManager.showInfo("Debe resolver un Sistema Compatible Determinado para corroborar.");
+            return;
+        }
+
+        try {
+            MatrixSolver.VerificationResult verification = MatrixSolver.checkSolution(
+                    originalA_str,
+                    originalB_str,
+                    lastSolutionSummary,
+                    useFractionsCheck.isSelected()
+            );
+
+            // Muestra el resultado de la verificación en un popup
+            PopupManager.showInfo(verification.equationResults);
+
+        } catch (Exception ex) {
+            PopupManager.showError("Ocurrió un error al corroborar la solución: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+    // ---------------------------------------
+
     @FXML
     private void onClear() {
         allMatrixFields.forEach(TextField::clear);
         resultArea.clear();
         clearErrorStyles();
         showStepsButton.setDisable(true);
+        checkButton.setDisable(true); // Limpiar también deshabilita el botón
         detailedSteps = null;
+        lastSolutionSummary = null; // Limpiar la solución almacenada
     }
 
     @FXML
@@ -241,7 +287,11 @@ public class MatrixController {
         }
     }
 
+
+
     private void clearErrorStyles() {
         allMatrixFields.forEach(field -> field.getStyleClass().remove("error-field"));
     }
+
+
 }

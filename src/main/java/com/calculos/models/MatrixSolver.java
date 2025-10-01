@@ -349,4 +349,149 @@ public class MatrixSolver {
         }
         return sb.toString();
     }
+
+    // Clase para el resultado de la verificación
+    public static class VerificationResult {
+        public final String equationResults;
+        public final boolean isCorrect;
+
+        public VerificationResult(String equationResults, boolean isCorrect) {
+            this.equationResults = equationResults;
+            this.isCorrect = isCorrect;
+        }
+    }
+
+    /**
+     * Corrobora la solución multiplicando la matriz A por el vector de soluciones X y comparando con B.
+     *
+     * @param A_str matriz de coeficientes inicial como String
+     * @param B_str vector de términos independientes inicial como String
+     * @param X_str vector de soluciones (ej. "x1=1/2\nx2=3") como String
+     * @param useFractions si es true, usa BigFraction para corroborar.
+     * @return Un objeto VerificationResult con el resumen.
+     */
+    public static VerificationResult checkSolution(String[][] A_str, String[] B_str, String X_str, boolean useFractions) {
+        // 1. Parsear las soluciones X_str
+        String[] xValues = parseSolutions(X_str);
+        if (xValues.length != A_str.length) {
+            return new VerificationResult("No se pudo parsear las soluciones (cantidad incorrecta).", false);
+        }
+
+        int n = A_str.length;
+        StringBuilder sb = new StringBuilder("=== Corroboración por Sustitución ===\n\n");
+
+        try {
+            if (useFractions) {
+                // 2. Convertir A, B y X a BigFraction
+                BigFraction[][] A = new BigFraction[n][n];
+                BigFraction[] B = new BigFraction[n];
+                BigFraction[] X = new BigFraction[n];
+
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        A[i][j] = parseToBigFraction(A_str[i][j]);
+                    }
+                    B[i] = parseToBigFraction(B_str[i]);
+                    X[i] = parseToBigFraction(xValues[i]);
+                }
+
+                // 3. Realizar la multiplicación matricial A * X = B'
+                boolean allCorrect = true;
+                for (int i = 0; i < n; i++) {
+                    BigFraction result = BigFraction.ZERO;
+                    for (int j = 0; j < n; j++) {
+                        result = result.add(A[i][j].multiply(X[j]));
+                    }
+
+                    // Comparación y formato
+                    boolean correct = result.reduce().equals(B[i].reduce());
+                    allCorrect = allCorrect && correct;
+
+                    sb.append(String.format("Ecuación %d: (%s) · X = %s\n", i + 1, formatFractionRow(A[i], X), result.reduce()));
+                    sb.append(String.format("Resultado: %s | Esperado: %s | Coincide: %s\n",
+                            result.reduce(), B[i].reduce(), correct ? "✅ SÍ" : "❌ NO")).append("\n");
+                }
+                sb.append(allCorrect ? "\n¡La solución es CORRECTA con cálculo exacto!" : "\nATENCIÓN: La solución NO COINCIDE exactamente (Fracciones).");
+                return new VerificationResult(sb.toString(), allCorrect);
+
+            } else { // Uso de Doubles (Decimales)
+
+                // 2. Convertir A, B y X a double
+                double[][] A = new double[n][n];
+                double[] B = new double[n];
+                double[] X = new double[n];
+
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        A[i][j] = parseToDouble(A_str[i][j]);
+                    }
+                    B[i] = parseToDouble(B_str[i]);
+                    X[i] = parseToDouble(xValues[i]);
+                }
+
+                // 3. Realizar la multiplicación matricial A * X = B'
+                boolean allCorrect = true;
+                for (int i = 0; i < n; i++) {
+                    double result = 0.0;
+                    for (int j = 0; j < n; j++) {
+                        result += A[i][j] * X[j];
+                    }
+
+                    // Comparación con tolerancia EPSILON
+                    boolean correct = Math.abs(result - B[i]) < EPSILON;
+                    allCorrect = allCorrect && correct;
+
+                    sb.append(String.format("Ecuación %d:\n", i + 1));
+                    sb.append(String.format("Cálculo: %.4f | Esperado: %.4f | Coincide: %s\n",
+                            result, B[i], correct ? "✅ SÍ" : "❌ NO (Diferencia > %.2e)").formatted(correct ? "" : EPSILON)).append("\n");
+                }
+                sb.append(allCorrect ? "\n¡La solución es CORRECTA con aproximación decimal!" : "\nATENCIÓN: La solución NO COINCIDE (Decimales).");
+                return new VerificationResult(sb.toString(), allCorrect);
+            }
+        } catch (Exception e) {
+            return new VerificationResult("Error al realizar la verificación: " + e.getMessage(), false);
+        }
+    }
+
+    /**
+     * Parsea el string de soluciones (ej. "x1=1/2\nx2=3\n...") y extrae solo los valores.
+     */
+    private static String[] parseSolutions(String X_str) {
+        if (X_str == null || X_str.isEmpty()) return new String[0];
+
+        // Buscar el segmento de las soluciones (después de "Soluciones:")
+        int start = X_str.indexOf("Soluciones:");
+        if (start == -1) start = X_str.indexOf("Soluciones (Aproximadas):");
+        if (start == -1) return new String[0];
+
+        String solutionBlock = X_str.substring(start);
+        return solutionBlock.lines()
+                .skip(1) // Saltar la línea "Soluciones:"
+                .filter(line -> line.contains("="))
+                .map(line -> {
+                    // Extraer el valor después del '=' (y remover '≈' o espacios)
+                    String value = line.substring(line.indexOf('=') + 1).trim();
+                    // Para decimales, quita el '≈' si existe
+                    if (value.startsWith("≈")) {
+                        value = value.substring(1).trim();
+                    }
+                    return value;
+                })
+                .toArray(String[]::new);
+    }
+
+    /**
+     * Formatea los coeficientes de una fila y sus soluciones para la impresión.
+     */
+    private static String formatFractionRow(BigFraction[] A_row, BigFraction[] X) {
+        StringBuilder sb = new StringBuilder();
+        for (int j = 0; j < A_row.length; j++) {
+            sb.append(A_row[j].reduce()).append("·(").append(X[j].reduce()).append(")");
+            if (j < A_row.length - 1) {
+                sb.append(" + ");
+            }
+        }
+        return sb.toString();
+    }
+
 }
