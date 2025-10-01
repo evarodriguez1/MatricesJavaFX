@@ -23,13 +23,13 @@
     </top>
 
     <center>
-        <TabPane fx:id="probabilityTabPane" side="TOP" tabClosingPolicy="UNAVAILABLE">
+        <TabPane fx:id="probabilityTabPane" tabClosingPolicy="UNAVAILABLE">
 
             <Tab text="Distribución Binomial">
                 <fx:include source="BinomialView.fxml"/>
             </Tab>
 
-            <Tab text="Distribución Normal (Gaussiana)">
+            <Tab text="Distribución Normal">
                 <fx:include source="GaussianaView.fxml"/>
             </Tab>
 

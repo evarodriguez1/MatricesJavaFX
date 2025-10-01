@@ -4,58 +4,75 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.calculos.controllers.HipergeometricaController"
-      spacing="15" alignment="TOP_CENTER" styleClass="tab-content">
 
-    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+<?import javafx.scene.layout.ColumnConstraints?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.HipergeometricaController"
+      spacing="20" styleClass="root">
+    <padding>
+        <Insets top="20" right="30" bottom="20" left="30"/>
+    </padding>
 
-    <Label text="Parámetros de la Población" styleClass="subtitle-label"/>
-    <GridPane hgap="10" vgap="10" alignment="CENTER">
-        <Label text="Población Total (N):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <TextField fx:id="nField" promptText="Tamaño total del grupo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    <!-- === COLUMNA IZQUIERDA: PANEL DE CONTROLES (ANCHO FIJO) === -->
+    <VBox spacing="15" prefWidth="400" minWidth="350">
 
-        <Label text="Éxitos Totales (K):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="kTotalField" promptText="Cantidad de éxitos en N" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <!-- Sección de Parámetros de la Población -->
+        <VBox styleClass="content-pane" spacing="10">
+            <Label text="Parámetros de la Población" styleClass="subtitle-label"/>
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="220.0" />
+                </columnConstraints>
+                <Label text="Población Total (N):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="nPopulationField" promptText="Total del grupo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-        <Label text="Tamaño Muestra (n):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <TextField fx:id="nSampleField" promptText="Elementos a extraer" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-    </GridPane>
+                <Label text="Éxitos Totales (K):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="kTotalField" promptText="Nº de 'éxitos' en el grupo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-    <Label text="Tipo de Probabilidad" styleClass="subtitle-label">
-        <VBox.margin>
-            <Insets top="10.0"/>
-        </VBox.margin>
-    </Label>
-    <ComboBox fx:id="calculationType" promptText="Selecciona un tipo de cálculo" prefWidth="250"/>
+                <Label text="Tamaño Muestra (n):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <TextField fx:id="nSampleField" promptText="Nº de elementos a extraer" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </GridPane>
+        </VBox>
 
-    <GridPane hgap="10" vgap="10" alignment="CENTER">
-        <Label text="Valor de k (o a):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <TextField fx:id="k1Field" promptText="Número de éxitos buscado" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <!-- Sección de Tipo de Probabilidad -->
+        <VBox styleClass="content-pane" spacing="10">
+            <Label text="Éxitos Buscados en la Muestra" styleClass="subtitle-label"/>
+            <ComboBox fx:id="calculationType" promptText="Selecciona un tipo de cálculo" maxWidth="Infinity"/>
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="220.0" />
+                </columnConstraints>
+                <Label text="Valor de k (o a):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="k1Field" promptText="Nº de éxitos en la muestra" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-        <Label text="Valor de b (para rangos):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="k2Field" promptText="Solo necesario para P(a ≤ X ≤ b)" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-    </GridPane>
+                <Label text="Valor de b (rango):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="k2Field" promptText="Solo si es rango" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </GridPane>
+        </VBox>
 
-    <HBox spacing="10" alignment="CENTER">
-        <VBox.margin>
-            <Insets top="10.0"/>
-        </VBox.margin>
-        <Button text="Calcular Probabilidad" onAction="#onSolve" styleClass="button"/>
-        <Button text="Limpiar Campos" onAction="#onClear" styleClass="clear-button"/>
-    </HBox>
+        <!-- Sección de Acciones -->
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button onAction="#onClear" text="Limpiar" styleClass="secondary-button"/>
+            <Button onAction="#onSolve" text="Calcular Probabilidad" styleClass="primary-button"/>
+        </HBox>
+    </VBox>
 
-    <Label text="Resultado y Otros Datos" styleClass="subtitle-label">
-        <VBox.margin>
-            <Insets top="10.0"/>
-        </VBox.margin>
-    </Label>
-    <TextArea fx:id="resultArea" editable="false" wrapText="true" prefHeight="150" prefWidth="400"/>
-
-</VBox>
+    <!-- === COLUMNA DERECHA: PANEL DE RESULTADOS (ESPACIO FLEXIBLE) === -->
+    <VBox spacing="10" HBox.hgrow="ALWAYS">
+        <Label text="Resultado y Otros Datos" styleClass="subtitle-label"/>
+        <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+            <content>
+                <TextArea fx:id="resultArea" editable="false" wrapText="true" styleClass="result-area"/>
+            </content>
+        </ScrollPane>
+    </VBox>
+</HBox>
