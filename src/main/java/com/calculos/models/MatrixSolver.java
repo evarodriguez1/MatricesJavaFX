@@ -304,7 +304,7 @@ public class MatrixSolver {
         StringBuilder sol = new StringBuilder("Sistema Compatible Determinado\nSoluciones (Aproximadas):\n");
         for (int i = 0; i < n; i++) {
             // M[i][n] contiene el resultado, ya que la matriz está en forma reducida por filas
-            sol.append(String.format("x%d ≈ %.6f\n", i + 1, M[i][n]));
+            sol.append(String.format("x%d ≈ %.4f\n", i + 1, M[i][n]));
         }
         return new SolveResult(sol.toString(), steps.toString());
     }
@@ -343,7 +343,7 @@ public class MatrixSolver {
             sb.append("[ ");
             for (double val : row) {
                 // Añadimos espacios para una mejor alineación
-                sb.append(String.format("%10.6f ", val));
+                sb.append(String.format("%10.4f ", val));
             }
             sb.append(" ]\n");
         }
