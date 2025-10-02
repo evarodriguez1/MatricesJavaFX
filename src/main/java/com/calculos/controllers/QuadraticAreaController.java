@@ -25,16 +25,16 @@ public class QuadraticAreaController {
     @FXML private Slider rectanglesSlider;
     @FXML private Label rectanglesLabel;
     @FXML private ComboBox<String> approximationComboBox;
-    // 🎯 ELIMINADO: @FXML private TextArea resultsArea; // Ya no usamos el TextArea en la vista principal
 
-    @FXML private Button showResultsButton; // 🎯 NUEVO: Botón para mostrar el popup
+
+    @FXML private Button showResultsButton;
     @FXML private VBox chartContainer;
     @FXML private StackPane canvasWrapper;
 
     private Canvas chartCanvas;
     private GraphicsContext gc;
 
-    // 🎯 NUEVO: Almacena los resultados para mostrarlos en el popup
+    // NUEVO: Almacena los resultados para mostrarlos en el popup
     private String lastResultsOutput = "Aún no se ha realizado un cálculo.";
 
     // Variables para almacenar los valores actuales de la función y el intervalo (usados por el gráfico)
@@ -116,7 +116,7 @@ public class QuadraticAreaController {
         rectanglesSlider.setValue(10);
         approximationComboBox.setValue("Izquierda");
 
-        // 🎯 CORRECCIÓN: Limpiar el resultado y deshabilitar botón
+        // CORRECCIÓN: Limpiar el resultado y deshabilitar botón
         lastResultsOutput = "Aún no se ha realizado un cálculo.";
         showResultsButton.setDisable(true);
 
