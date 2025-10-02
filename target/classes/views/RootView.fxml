@@ -26,5 +26,6 @@
         <Button text="1. Estadísticas" onAction="#openStatisticsView" prefWidth="250" />
         <Button text="2. Probabilidades" onAction="#openProbabilityView" prefWidth="250" />
         <Button text="3. Matrices (Gauss-Jordan)" onAction="#openMatrixView" prefWidth="250" />
+        <Button text="4. Área Curva Cuadrática" onAction="#openQuadraticAreaView" prefWidth="250" />
     </VBox>
 </VBox>

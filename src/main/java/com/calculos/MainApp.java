@@ -26,6 +26,11 @@ public class MainApp extends Application {
         stage.show();
     }
 
+    public static Stage getPrimaryStage() {
+        return primaryStage;
+    }
+
+
     public static void setRoot(Parent root, String title) {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(

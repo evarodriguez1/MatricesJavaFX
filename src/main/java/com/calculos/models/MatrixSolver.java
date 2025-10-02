@@ -338,7 +338,7 @@ public class MatrixSolver {
     // Método de impresión para double (Corregido para formato)
     private static String printMatrix(double[][] M) {
         StringBuilder sb = new StringBuilder();
-        // Usamos un formato fijo (ej. 6 decimales) para que sea legible
+        // Usamos un formato fijo (ej. 4 decimales) para que sea legible
         for (double[] row : M) {
             sb.append("[ ");
             for (double val : row) {
