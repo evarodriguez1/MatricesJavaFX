@@ -185,7 +185,7 @@ public class QuadraticAreaController {
                     functionStr, start, end, n, approximation, lowerSum, upperSum, approximation, customApprox, realArea
             );
 
-            lastResultsOutput = output; // 🎯 CORRECCIÓN: Guardar en la variable
+            lastResultsOutput = output; // CORRECCIÓN: Guardar en la variable
             showResultsButton.setDisable(false);
 
             // 4. ACTUALIZAR GRÁFICO
@@ -195,7 +195,7 @@ public class QuadraticAreaController {
             currentStart = start;
             currentEnd = end;
             drawChart();
-            showResultsPopup(); // 🎯 CORRECCIÓN: Mostrar el popup
+            showResultsPopup(); // CORRECCIÓN: Mostrar el popup
 
         } catch (NumberFormatException e) {
             lastResultsOutput = "Error de entrada: Asegúrate de que todos los campos sean números válidos. " + e.getMessage();
