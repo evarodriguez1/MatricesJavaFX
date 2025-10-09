@@ -43,4 +43,19 @@ public class RootController {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Nuevo método para abrir la vista de Cálculo de Área Cuadrática
+     */
+    @FXML
+    private void openQuadraticAreaView() {
+        try {
+            // Carga la nueva vista del cálculo de área
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/QuadraticAreaView.fxml"));
+            Parent root = loader.load();
+            MainApp.setRoot(root, "Módulo - Área Bajo la Curva Cuadrática");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
