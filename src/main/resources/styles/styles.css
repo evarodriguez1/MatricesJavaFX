@@ -198,6 +198,10 @@
     -fx-text-fill: #4A148C;
 }
 
+.check-box {
+    -fx-text-fill: white;
+}
+
 /* El contenido dentro de cada pestaña */
 .tab-content-area {
     -fx-background-color: rgba(74, 20, 140, 0.4); /* Morado oscuro semitransparente */
