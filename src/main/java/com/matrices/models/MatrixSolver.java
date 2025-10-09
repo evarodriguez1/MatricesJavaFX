@@ -31,7 +31,7 @@ public class MatrixSolver {
                     return "Sistema Incompatible o Indeterminado.";
                 }
             }
-            //
+            //commit
             // Normalizar la fila
             double pivot = M[i][i];
             for (int j = 0; j <= n; j++) {
