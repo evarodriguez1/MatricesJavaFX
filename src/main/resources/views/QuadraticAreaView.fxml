@@ -71,12 +71,6 @@
                     <Button text="Limpiar" onAction="#clearFields" prefWidth="200" styleClass="button, secondary-action-button" />
                 </VBox>
 
-                <VBox spacing="10" alignment="CENTER" VBox.vgrow="ALWAYS">
-                    <Label text="4. Ver Resultados Detallados" styleClass="subtitle-label" />
-                    <Button fx:id="showResultsButton" text="Mostrar Resultados" onAction="#showResultsPopup" prefWidth="200"
-                            styleClass="button,secondary-action-button" disable="true"/>
-                </VBox>
-
             </VBox>
 
             <VBox fx:id="chartContainer" alignment="TOP_CENTER" spacing="10" styleClass="content-pane" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">

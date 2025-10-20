@@ -53,7 +53,6 @@ public class QuadraticAreaController {
 
     @FXML
     public void initialize() {
-        showResultsButton.setDisable(true);
 
         rectanglesLabel.setText(String.format("Cantidad N: %d", (int) rectanglesSlider.getValue()));
         rectanglesSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
