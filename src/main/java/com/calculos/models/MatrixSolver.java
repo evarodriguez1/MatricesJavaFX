@@ -16,341 +16,34 @@ public class MatrixSolver {
         }
     }
 
-    // Tolerancia para comparaciones con punto flotante (dobles)
     private static final double EPSILON = 1e-9;
 
-    /**
-     * Resuelve un sistema 3x3 usando Gauss–Jordan.
-     * Acepta Strings para mantener la precisión de las fracciones de entrada.
-     *
-     * @param A_str matriz de coeficientes como String
-     * @param B_str vector de términos independientes como String
-     * @param useFractions si es true, se usarán fracciones para cálculos exactos.
-     * @return Un objeto SolveResult con el resumen y los pasos.
-     */
-    public static SolveResult solveGaussJordan(String[][] A_str, String[] B_str, boolean useFractions) {
-        if (useFractions) {
-            // Convertir todo a BigFraction
-            int n = A_str.length;
-            BigFraction[][] M_frac = new BigFraction[n][n + 1];
+    // --- MÉTODOS PÚBLICOS PRINCIPALES ---
 
-            try {
+    public static SolveResult solveGaussJordan(String[][] A_str, String[] B_str, boolean useFractions) {
+        try {
+            if (useFractions) {
+                int n = A_str.length;
+                BigFraction[][] M_frac = new BigFraction[n][n + 1];
                 for (int i = 0; i < n; i++) {
-                    for (int j = 0; j < n; j++) {
-                        M_frac[i][j] = parseToBigFraction(A_str[i][j]);
-                    }
+                    for (int j = 0; j < n; j++) M_frac[i][j] = parseToBigFraction(A_str[i][j]);
                     M_frac[i][n] = parseToBigFraction(B_str[i]);
                 }
-            } catch (Exception e) {
-                // Relanzar la excepción para que el controlador la capture
-                throw new IllegalArgumentException("Error al convertir a fracción/número: " + e.getMessage());
-            }
-
-            return solveWithFractions(M_frac);
-        } else {
-            // Si NO se usan fracciones, convertimos a double para el solver de punto flotante
-            int n = A_str.length;
-            double[][] M_double = new double[n][n + 1];
-            try {
+                return solveWithFractions(M_frac);
+            } else {
+                int n = A_str.length;
+                double[][] M_double = new double[n][n + 1];
                 for (int i = 0; i < n; i++) {
-                    for (int j = 0; j < n; j++) {
-                        M_double[i][j] = parseToDouble(A_str[i][j]);
-                    }
+                    for (int j = 0; j < n; j++) M_double[i][j] = parseToDouble(A_str[i][j]);
                     M_double[i][n] = parseToDouble(B_str[i]);
                 }
-            } catch (Exception e) {
-                // Relanzar la excepción para que el controlador la capture
-                throw new IllegalArgumentException("Error al convertir a decimal/número: " + e.getMessage());
+                return solveWithDoubles(M_double);
             }
-            return solveWithDoubles(M_double);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Error en la conversión de entrada: " + e.getMessage());
         }
     }
 
-    /**
-     * Convierte una cadena (ej. "1", "3/4", "-1.5") a BigFraction.
-     * Esto asegura que las fracciones de entrada se representan exactamente.
-     */
-    private static BigFraction parseToBigFraction(String s) {
-        s = s.trim();
-        if (s.contains("/")) {
-            String[] parts = s.split("/");
-            if (parts.length != 2) throw new NumberFormatException("Formato de fracción inválido: " + s);
-
-            try {
-                // Intenta usar BigInteger para enteros
-                BigInteger num = new BigInteger(parts[0].trim());
-                BigInteger den = new BigInteger(parts[1].trim());
-                if (den.equals(BigInteger.ZERO)) throw new ArithmeticException("Denominador cero");
-                return new BigFraction(num, den);
-            } catch (NumberFormatException e) {
-                // Si falla, significa que al menos un componente es un decimal (ej. "1.5/2").
-                // Volvemos a la representación Double (menos ideal pero maneja entradas mixtas).
-                return new BigFraction(parseToDouble(s));
-            }
-        } else {
-            // Si es un entero o decimal simple (ej. "2" o "1.5")
-            try {
-                // Intenta leer como entero para máxima precisión
-                return new BigFraction(new BigInteger(s));
-            } catch (NumberFormatException e) {
-                // Si falla, es un decimal.
-                return new BigFraction(Double.parseDouble(s));
-            }
-        }
-    }
-
-    /**
-     * Convierte una cadena (ej. "1", "3/4", "-1.5") a double.
-     * Usado si el usuario NO selecciona cálculo exacto.
-     */
-    private static double parseToDouble(String s) {
-        s = s.trim();
-        // Permite comas como separador decimal para flexibilidad
-        s = s.replace(",", ".");
-        if (s.contains("/")) {
-            String[] parts = s.split("/");
-            if (parts.length != 2) throw new NumberFormatException("Formato de fracción inválido para double: " + s);
-            return Double.parseDouble(parts[0].trim()) / Double.parseDouble(parts[1].trim());
-        } else {
-            return Double.parseDouble(s);
-        }
-    }
-
-    /**
-     * Lógica de resolución interna usando BigFraction para máxima precisión.
-     */
-    private static SolveResult solveWithFractions(BigFraction[][] M) {
-        int n = M.length;
-        StringBuilder steps = new StringBuilder("=== Resolución con Fracciones Exactas (Gauss–Jordan) ===\n\n");
-        steps.append("Matriz Aumentada Inicial:\n").append(printMatrix(M)).append("\n");
-
-        int pivotRow = 0;
-        for (int col = 0; col < n && pivotRow < n; col++) {
-            // Pivoting parcial
-            int maxRow = pivotRow;
-            for (int i = pivotRow + 1; i < n; i++) {
-                if (M[i][col].abs().compareTo(M[maxRow][col].abs()) > 0) {
-                    maxRow = i;
-                }
-            }
-
-            // Intercambiar filas
-            if (maxRow != pivotRow) {
-                BigFraction[] temp = M[pivotRow];
-                M[pivotRow] = M[maxRow];
-                M[maxRow] = temp;
-                steps.append(String.format("Fila %d ↔ Fila %d\n", pivotRow + 1, maxRow + 1));
-                steps.append(printMatrix(M)).append("\n");
-            }
-
-            // Si el pivote es cero, esta columna no puede ser pivoteada
-            if (M[pivotRow][col].equals(BigFraction.ZERO)) {
-                steps.append("Columna ").append(col + 1).append(" sin pivote válido, se continúa.\n");
-                continue;
-            }
-
-            // Normalizar la fila del pivote (hacer que el pivote sea 1)
-            BigFraction pivot = M[pivotRow][col];
-            if (!pivot.equals(BigFraction.ONE)) {
-                steps.append(String.format("Fila %d = Fila %d / (%s)\n", pivotRow + 1, pivotRow + 1, pivot.reduce()));
-                for (int j = col; j <= n; j++) {
-                    M[pivotRow][j] = M[pivotRow][j].divide(pivot);
-                }
-                steps.append(printMatrix(M)).append("\n");
-            }
-
-            // Eliminar otras entradas en la columna del pivote
-            for (int i = 0; i < n; i++) {
-                if (i != pivotRow) {
-                    BigFraction factor = M[i][col];
-                    if (!factor.equals(BigFraction.ZERO)) {
-                        steps.append(String.format("Fila %d = Fila %d - (%s) * Fila %d\n", i + 1, i + 1, factor.reduce(), pivotRow + 1));
-                        for (int j = col; j <= n; j++) {
-                            M[i][j] = M[i][j].subtract(factor.multiply(M[pivotRow][j]));
-                        }
-                        steps.append(printMatrix(M)).append("\n");
-                    }
-                }
-            }
-            pivotRow++;
-
-        }
-
-        // Análisis y clasificación del sistema
-        int rankA = 0;
-        for (int i = 0; i < n; i++) {
-            boolean allZero = true;
-            for (int j = 0; j < n; j++) {
-                if (!M[i][j].equals(BigFraction.ZERO)) {
-                    allZero = false;
-                    break;
-                }
-            }
-            if (allZero) {
-                if (!M[i][n].equals(BigFraction.ZERO)) {
-                    steps.append("Se encontró una inconsistencia en la fila ").append(i + 1).append(" (0 = k ≠ 0).\n");
-                    return new SolveResult("Sistema Incompatible (Sin solución)\nRango(A) = " + rankA + ", Rango(A|b) = " + (rankA + 1), steps.toString());
-                }
-            } else {
-                rankA++;
-            }
-        }
-
-        if (rankA < n) {
-            return new SolveResult(
-                    "Sistema Compatible Indeterminado (Infinitas soluciones)\n" +
-                            "Rango(A) = Rango(A|b) = " + rankA + " < Nº de incógnitas",
-                    steps.toString()
-            );
-        }
-
-        // Sistema Compatible Determinado
-        StringBuilder sol = new StringBuilder("Sistema Compatible Determinado\nSoluciones:\n");
-        for (int i = 0; i < n; i++) {
-            // Usamos .reduce() para simplificar las fracciones finales
-            sol.append(String.format("x%d = %s\n", i + 1, M[i][n].reduce().toString()));
-        }
-        return new SolveResult(sol.toString(), steps.toString());
-    }
-
-    /**
-     * Lógica de resolución interna usando doubles (punto flotante).
-     */
-    private static SolveResult solveWithDoubles(double[][] M) {
-        int n = M.length;
-        StringBuilder steps = new StringBuilder("=== Resolución con Aproximación Decimal (Gauss–Jordan) ===\n\n");
-        steps.append("Matriz Aumentada Inicial:\n").append(printMatrix(M)).append("\n");
-
-        int pivotRow = 0;
-        for (int col = 0; col < n && pivotRow < n; col++) {
-            // Pivoting parcial: encontrar la fila con el mayor valor absoluto en la columna actual
-            int maxRow = pivotRow;
-            for (int i = pivotRow + 1; i < n; i++) {
-                if (Math.abs(M[i][col]) > Math.abs(M[maxRow][col])) {
-                    maxRow = i;
-                }
-            }
-
-            // Intercambiar filas si es necesario
-            if (maxRow != pivotRow) {
-                double[] temp = M[pivotRow];
-                M[pivotRow] = M[maxRow];
-                M[maxRow] = temp;
-                steps.append(String.format("Fila %d ↔ Fila %d\n", pivotRow + 1, maxRow + 1));
-                steps.append(printMatrix(M)).append("\n");
-            }
-
-            // Si el pivote es cercano a cero, esta columna no puede ser pivoteada
-            if (Math.abs(M[pivotRow][col]) < EPSILON) {
-                steps.append("Columna ").append(col + 1).append(" sin pivote válido (cercano a cero), se continúa.\n");
-                continue;
-            }
-
-            // Normalizar la fila del pivote (hacer que el pivote sea 1)
-            double pivot = M[pivotRow][col];
-            if (Math.abs(pivot - 1.0) > EPSILON) {
-                steps.append(String.format("Fila %d = Fila %d / (%.4f)\n", pivotRow + 1, pivotRow + 1, pivot));
-                for (int j = col; j <= n; j++) {
-                    M[pivotRow][j] /= pivot;
-                }
-                steps.append(printMatrix(M)).append("\n");
-            }
-
-            // Eliminar otras entradas en la columna del pivote
-            for (int i = 0; i < n; i++) {
-                if (i != pivotRow) {
-                    double factor = M[i][col];
-                    if (Math.abs(factor) > EPSILON) {
-                        steps.append(String.format("Fila %d = Fila %d - (%.4f) * Fila %d\n", i + 1, i + 1, factor, pivotRow + 1));
-                        for (int j = col; j <= n; j++) {
-                            M[i][j] -= factor * M[pivotRow][j];
-                        }
-                        steps.append(printMatrix(M)).append("\n");
-                    }
-                }
-            }
-            pivotRow++;
-        }
-
-        // Análisis y clasificación del sistema
-        int rankA = 0;
-        for (int i = 0; i < n; i++) {
-            boolean allZero = true;
-            for (int j = 0; j < n; j++) {
-                if (Math.abs(M[i][j]) > EPSILON) {
-                    allZero = false;
-                    break;
-                }
-            }
-            if (allZero) {
-                if (Math.abs(M[i][n]) > EPSILON) {
-                    steps.append("Se encontró una inconsistencia en la fila ").append(i + 1).append(" (0 ≈ k ≠ 0).\n");
-                    return new SolveResult("Sistema Incompatible (Sin solución)\nRango(A) = " + rankA + ", Rango(A|b) = " + (rankA + 1), steps.toString());
-                }
-            } else {
-                rankA++;
-            }
-        }
-
-        if (rankA < n) {
-            return new SolveResult(
-                    "Sistema Compatible Indeterminado (Infinitas soluciones)\n" +
-                            "Rango(A) = Rango(A|b) = " + rankA + " < Nº de incógnitas",
-                    steps.toString()
-            );
-        }
-
-        // Sistema Compatible Determinado
-        StringBuilder sol = new StringBuilder("Sistema Compatible Determinado\nSoluciones (Aproximadas):\n");
-        for (int i = 0; i < n; i++) {
-            // M[i][n] contiene el resultado, ya que la matriz está en forma reducida por filas
-            sol.append(String.format("x%d ≈ %.4f\n", i + 1, M[i][n]));
-        }
-        return new SolveResult(sol.toString(), steps.toString());
-    }
-
-    // Método de impresión para BigFraction (sin cambios)
-    private static String printMatrix(BigFraction[][] M) {
-        // ... (Tu implementación original para BigFraction) ...
-        StringBuilder sb = new StringBuilder();
-        int[] maxWidths = new int[M[0].length];
-        // Calcular anchos máximos
-        for (int j = 0; j < M[0].length; j++) {
-            for (int i = 0; i < M.length; i++) {
-                int len = M[i][j].reduce().toString().length(); // Usamos .reduce() para la impresión
-                if (len > maxWidths[j]) {
-                    maxWidths[j] = len;
-                }
-            }
-        }
-
-        for (BigFraction[] row : M) {
-            sb.append("[ ");
-            for (int j = 0; j < row.length; j++) {
-                // Usamos .reduce() para asegurar que la fracción se muestre simplificada
-                sb.append(String.format("%" + (maxWidths[j] + 1) + "s", row[j].reduce().toString()));
-            }
-            sb.append(" ]\n");
-        }
-        return sb.toString();
-    }
-
-    // Método de impresión para double (Corregido para formato)
-    private static String printMatrix(double[][] M) {
-        StringBuilder sb = new StringBuilder();
-        // Usamos un formato fijo (ej. 4 decimales) para que sea legible
-        for (double[] row : M) {
-            sb.append("[ ");
-            for (double val : row) {
-                // Añadimos espacios para una mejor alineación
-                sb.append(String.format("%10.4f ", val));
-            }
-            sb.append(" ]\n");
-        }
-        return sb.toString();
-    }
-
-    // Clase para el resultado de la verificación
     public static class VerificationResult {
         public final String equationResults;
         public final boolean isCorrect;
@@ -361,132 +54,266 @@ public class MatrixSolver {
         }
     }
 
-    /**
-     * Corrobora la solución multiplicando la matriz A por el vector de soluciones X y comparando con B.
-     *
-     * @param A_str matriz de coeficientes inicial como String
-     * @param B_str vector de términos independientes inicial como String
-     * @param X_str vector de soluciones (ej. "x1=1/2\nx2=3") como String
-     * @param useFractions si es true, usa BigFraction para corroborar.
-     * @return Un objeto VerificationResult con el resumen.
-     */
     public static VerificationResult checkSolution(String[][] A_str, String[] B_str, String X_str, boolean useFractions) {
-        // 1. Parsear las soluciones X_str
+        int n = A_str.length;
         String[] xValues = parseSolutions(X_str);
-        if (xValues.length != A_str.length) {
-            return new VerificationResult("No se pudo parsear las soluciones (cantidad incorrecta).", false);
+        if (xValues.length != n) {
+            return new VerificationResult("Error: La cantidad de soluciones encontradas no coincide con el tamaño del sistema.", false);
         }
 
-        int n = A_str.length;
         StringBuilder sb = new StringBuilder("=== Corroboración por Sustitución ===\n\n");
 
         try {
             if (useFractions) {
-                // 2. Convertir A, B y X a BigFraction
                 BigFraction[][] A = new BigFraction[n][n];
                 BigFraction[] B = new BigFraction[n];
                 BigFraction[] X = new BigFraction[n];
-
                 for (int i = 0; i < n; i++) {
-                    for (int j = 0; j < n; j++) {
-                        A[i][j] = parseToBigFraction(A_str[i][j]);
-                    }
+                    for (int j = 0; j < n; j++) A[i][j] = parseToBigFraction(A_str[i][j]);
                     B[i] = parseToBigFraction(B_str[i]);
                     X[i] = parseToBigFraction(xValues[i]);
                 }
-
-                // 3. Realizar la multiplicación matricial A * X = B'
                 boolean allCorrect = true;
                 for (int i = 0; i < n; i++) {
                     BigFraction result = BigFraction.ZERO;
                     for (int j = 0; j < n; j++) {
                         result = result.add(A[i][j].multiply(X[j]));
                     }
-
-                    // Comparación y formato
                     boolean correct = result.reduce().equals(B[i].reduce());
-                    allCorrect = allCorrect && correct;
-
-                    sb.append(String.format("Ecuación %d: (%s) · X = %s\n", i + 1, formatFractionRow(A[i], X), result.reduce()));
-                    sb.append(String.format("Resultado: %s | Esperado: %s | Coincide: %s\n",
-                            result.reduce(), B[i].reduce(), correct ? "✅ SÍ" : "❌ NO")).append("\n");
+                    if (!correct) allCorrect = false;
+                    sb.append(String.format("Ecuación %d: (%s)\n", i + 1, formatFractionRow(A[i], X)));
+                    sb.append(String.format("↳ Resultado: %s | Valor Esperado: %s | ¿Coincide?: %s\n\n",
+                            result.reduce().toString().replace(" / ", "/"),
+                            B[i].reduce().toString().replace(" / ", "/"),
+                            correct ? "✅ SÍ" : "❌ NO"));
                 }
-                sb.append(allCorrect ? "\n¡La solución es CORRECTA con cálculo exacto!" : "\nATENCIÓN: La solución NO COINCIDE exactamente (Fracciones).");
+                sb.append(allCorrect ? "¡CORRECTO! La solución satisface todas las ecuaciones con cálculo exacto." : "¡ERROR! La solución no satisface todas las ecuaciones.");
                 return new VerificationResult(sb.toString(), allCorrect);
-
-            } else { // Uso de Doubles (Decimales)
-
-                // 2. Convertir A, B y X a double
+            } else {
                 double[][] A = new double[n][n];
                 double[] B = new double[n];
                 double[] X = new double[n];
-
                 for (int i = 0; i < n; i++) {
-                    for (int j = 0; j < n; j++) {
-                        A[i][j] = parseToDouble(A_str[i][j]);
-                    }
+                    for (int j = 0; j < n; j++) A[i][j] = parseToDouble(A_str[i][j]);
                     B[i] = parseToDouble(B_str[i]);
                     X[i] = parseToDouble(xValues[i]);
                 }
-
-                // 3. Realizar la multiplicación matricial A * X = B'
                 boolean allCorrect = true;
                 for (int i = 0; i < n; i++) {
                     double result = 0.0;
-                    for (int j = 0; j < n; j++) {
-                        result += A[i][j] * X[j];
-                    }
-
-                    // Comparación con tolerancia EPSILON
+                    for (int j = 0; j < n; j++) result += A[i][j] * X[j];
                     boolean correct = Math.abs(result - B[i]) < EPSILON;
-                    allCorrect = allCorrect && correct;
-
+                    if (!correct) allCorrect = false;
                     sb.append(String.format("Ecuación %d:\n", i + 1));
-                    sb.append(String.format("Cálculo: %.4f | Esperado: %.4f | Coincide: %s\n",
-                            result, B[i], correct ? "✅ SÍ" : "❌ NO (Diferencia > %.2e)").formatted(correct ? "" : EPSILON)).append("\n");
+                    sb.append(String.format("↳ Resultado: %.4f | Valor Esperado: %.4f | ¿Coincide?: %s\n\n",
+                            result, B[i], correct ? "✅ SÍ" : "❌ NO"));
                 }
-                sb.append(allCorrect ? "\n¡La solución es CORRECTA con aproximación decimal!" : "\nATENCIÓN: La solución NO COINCIDE (Decimales).");
+                sb.append(allCorrect ? "¡CORRECTO! La solución satisface todas las ecuaciones con aproximación decimal." : "¡ERROR! La solución no satisface todas las ecuaciones.");
                 return new VerificationResult(sb.toString(), allCorrect);
             }
         } catch (Exception e) {
-            return new VerificationResult("Error al realizar la verificación: " + e.getMessage(), false);
+            return new VerificationResult("Error durante la verificación: " + e.getMessage(), false);
         }
     }
 
-    /**
-     * Parsea el string de soluciones (ej. "x1=1/2\nx2=3\n...") y extrae solo los valores.
-     */
+    // --- LÓGICA DE RESOLUCIÓN INTERNA ---
+
+    private static SolveResult solveWithFractions(BigFraction[][] M) {
+        int n = M.length;
+        StringBuilder steps = new StringBuilder("=== Resolución con Fracciones Exactas (Gauss-Jordan) ===\n\n");
+        steps.append("1. Matriz Aumentada Inicial:\n").append(printMatrix(M)).append("\n");
+        int pivotRow = 0;
+        for (int col = 0; col < n && pivotRow < n; col++) {
+            steps.append(String.format("--- PASO: Procesando Columna %d ---\n", col + 1));
+            int maxRow = pivotRow;
+            for (int i = pivotRow + 1; i < n; i++) {
+                if (M[i][col].abs().compareTo(M[maxRow][col].abs()) > 0) maxRow = i;
+            }
+            steps.append(String.format("Buscando pivote en la Columna %d a partir de la Fila %d.\n", col + 1, pivotRow + 1));
+            steps.append(String.format("El valor absoluto máximo (%s) se encontró en la Fila %d.\n", M[maxRow][col].abs().reduce().toString().replace(" / ","/"), maxRow + 1));
+            if (maxRow != pivotRow) {
+                steps.append(String.format("Intercambiando Fila %d con Fila %d para usar el pivote más grande.\n", pivotRow + 1, maxRow + 1));
+                BigFraction[] temp = M[pivotRow];
+                M[pivotRow] = M[maxRow];
+                M[maxRow] = temp;
+                steps.append(printMatrix(M)).append("\n");
+            }
+            if (M[pivotRow][col].equals(BigFraction.ZERO)) {
+                steps.append("El pivote es Cero. No se puede procesar esta columna, se continúa con la siguiente.\n\n");
+                continue;
+            }
+            BigFraction pivot = M[pivotRow][col];
+            if (!pivot.equals(BigFraction.ONE)) {
+                steps.append(String.format("Normalizando la Fila %d para que el pivote sea 1.\nOperación: F%d = F%d / (%s)\n", pivotRow + 1, pivotRow + 1, pivotRow + 1, pivot.reduce().toString().replace(" / ", "/")));
+                for (int j = col; j <= n; j++) M[pivotRow][j] = M[pivotRow][j].divide(pivot);
+                steps.append(printMatrix(M)).append("\n");
+            }
+            for (int i = 0; i < n; i++) {
+                if (i != pivotRow) {
+                    BigFraction factor = M[i][col];
+                    if (!factor.equals(BigFraction.ZERO)) {
+                        steps.append(String.format("Eliminando el elemento de la Fila %d en la columna del pivote.\nOperación: F%d = F%d - (%s) * F%d\n", i + 1, i + 1, i + 1, factor.reduce().toString().replace(" / ", "/"), pivotRow + 1));
+                        for (int j = col; j <= n; j++) M[i][j] = M[i][j].subtract(factor.multiply(M[pivotRow][j]));
+                        steps.append(printMatrix(M)).append("\n");
+                    }
+                }
+            }
+            pivotRow++;
+        }
+        steps.append("--- ANÁLISIS DEL SISTEMA ---\n");
+        int rankA = 0;
+        for (int i = 0; i < n; i++) {
+            boolean allZero = true;
+            for (int j = 0; j < n; j++) if (!M[i][j].equals(BigFraction.ZERO)) { allZero = false; break; }
+            if (allZero) {
+                if (!M[i][n].equals(BigFraction.ZERO)) {
+                    steps.append("Se encontró una inconsistencia en la Fila ").append(i + 1).append(" (0 = k donde k ≠ 0).\n");
+                    return new SolveResult("Sistema Incompatible (Sin solución)\nRango(A) = " + rankA + ", Rango(A|b) = " + (rankA + 1), steps.toString());
+                }
+            } else rankA++;
+        }
+        if (rankA < n) {
+            steps.append("El rango de la matriz es menor que el número de incógnitas.\n");
+            return new SolveResult("Sistema Compatible Indeterminado (Infinitas soluciones)\nRango(A) = Rango(A|b) = " + rankA + " < Nº de incógnitas", steps.toString());
+        }
+        steps.append("La matriz está en forma escalonada reducida. Se extraen las soluciones.\n");
+        StringBuilder sol = new StringBuilder("Sistema Compatible Determinado\nSoluciones:\n");
+        for (int i = 0; i < n; i++) sol.append(String.format("x%d = %s\n", i + 1, M[i][n].reduce().toString().replace(" / ", "/")));
+        return new SolveResult(sol.toString(), steps.toString());
+    }
+
+    private static SolveResult solveWithDoubles(double[][] M) {
+        int n = M.length;
+        StringBuilder steps = new StringBuilder("=== Resolución con Aproximación Decimal (Gauss-Jordan) ===\n\n");
+        steps.append("1. Matriz Aumentada Inicial:\n").append(printMatrix(M)).append("\n");
+        int pivotRow = 0;
+        for (int col = 0; col < n && pivotRow < n; col++) {
+            steps.append(String.format("--- PASO: Procesando Columna %d ---\n", col + 1));
+            int maxRow = pivotRow;
+            for (int i = pivotRow + 1; i < n; i++) if (Math.abs(M[i][col]) > Math.abs(M[maxRow][col])) maxRow = i;
+            steps.append(String.format("Buscando pivote en la Columna %d a partir de la Fila %d.\n", col + 1, pivotRow + 1));
+            steps.append(String.format("El valor absoluto máximo (%.2f) se encontró en la Fila %d.\n", M[maxRow][col], maxRow + 1));
+            if (maxRow != pivotRow) {
+                steps.append(String.format("Intercambiando Fila %d con Fila %d para usar el pivote más grande.\n", pivotRow + 1, maxRow + 1));
+                double[] temp = M[pivotRow];
+                M[pivotRow] = M[maxRow];
+                M[maxRow] = temp;
+                steps.append(printMatrix(M)).append("\n");
+            }
+            if (Math.abs(M[pivotRow][col]) < EPSILON) {
+                steps.append("El pivote es cercano a Cero. No se puede procesar esta columna, se continúa.\n\n");
+                continue;
+            }
+            double pivot = M[pivotRow][col];
+            if (Math.abs(pivot - 1.0) > EPSILON) {
+                steps.append(String.format("Normalizando la Fila %d para que el pivote sea 1.\nOperación: F%d = F%d / (%.4f)\n", pivotRow + 1, pivotRow + 1, pivotRow + 1, pivot));
+                for (int j = col; j <= n; j++) M[pivotRow][j] /= pivot;
+                steps.append(printMatrix(M)).append("\n");
+            }
+            for (int i = 0; i < n; i++) {
+                if (i != pivotRow) {
+                    double factor = M[i][col];
+                    if (Math.abs(factor) > EPSILON) {
+                        steps.append(String.format("Eliminando el elemento de la Fila %d en la columna del pivote.\nOperación: F%d = F%d - (%.4f) * F%d\n", i + 1, i + 1, i + 1, factor, pivotRow + 1));
+                        for (int j = col; j <= n; j++) M[i][j] -= factor * M[pivotRow][j];
+                        steps.append(printMatrix(M)).append("\n");
+                    }
+                }
+            }
+            pivotRow++;
+        }
+        steps.append("--- ANÁLISIS DEL SISTEMA ---\n");
+        int rankA = 0;
+        for (int i = 0; i < n; i++) {
+            boolean allZero = true;
+            for (int j = 0; j < n; j++) if (Math.abs(M[i][j]) > EPSILON) { allZero = false; break; }
+            if (allZero) {
+                if (Math.abs(M[i][n]) > EPSILON) {
+                    steps.append("Se encontró una inconsistencia en la Fila ").append(i + 1).append(" (0 ≈ k donde k ≠ 0).\n");
+                    return new SolveResult("Sistema Incompatible (Sin solución)\nRango(A) = " + rankA + ", Rango(A|b) = " + (rankA + 1), steps.toString());
+                }
+            } else rankA++;
+        }
+        if (rankA < n) {
+            steps.append("El rango de la matriz es menor que el número de incógnitas.\n");
+            return new SolveResult("Sistema Compatible Indeterminado (Infinitas soluciones)\nRango(A) = Rango(A|b) = " + rankA + " < Nº de incógnitas", steps.toString());
+        }
+        steps.append("La matriz está en forma escalonada reducida. Se extraen las soluciones.\n");
+        StringBuilder sol = new StringBuilder("Sistema Compatible Determinado\nSoluciones (Aproximadas):\n");
+        for (int i = 0; i < n; i++) sol.append(String.format("x%d ≈ %.4f\n", i + 1, M[i][n]));
+        return new SolveResult(sol.toString(), steps.toString());
+    }
+
+    // --- MÉTODOS DE AYUDA (Helpers) ---
+
+    private static String centerString(String text, int width) {
+        if (text.length() >= width) return text;
+        int totalPadding = width - text.length();
+        int leftPadding = totalPadding / 2;
+        int rightPadding = totalPadding - leftPadding;
+        return " ".repeat(leftPadding) + text + " ".repeat(rightPadding);
+    }
+
+    private static String printMatrix(BigFraction[][] M) {
+        StringBuilder sb = new StringBuilder();
+        int nCols = M[0].length;
+        int[] maxWidths = new int[nCols];
+
+        for (int j = 0; j < nCols; j++) {
+            for (BigFraction[] row : M) {
+                // ✅ CORRECCIÓN: Usa la longitud del string compacto ("2/5") para el cálculo del ancho
+                String fractionStr = row[j].reduce().toString().replace(" / ", "/");
+                int len = fractionStr.length();
+                if (len > maxWidths[j]) maxWidths[j] = len;
+            }
+        }
+        for (BigFraction[] row : M) {
+            sb.append("[");
+            for (int j = 0; j < nCols; j++) {
+                if (j > 0) sb.append(" ");
+                if (j == nCols - 1) sb.append("| ");
+                // ✅ CORRECCIÓN: Reemplaza los espacios antes de centrar y mostrar
+                String text = row[j].reduce().toString().replace(" / ", "/");
+                sb.append(centerString(text, maxWidths[j]));
+            }
+            sb.append(" ]\n");
+        }
+        return sb.toString();
+    }
+
+    private static String printMatrix(double[][] M) {
+        StringBuilder sb = new StringBuilder();
+        int nCols = M[0].length;
+        for (double[] row : M) {
+            sb.append("[");
+            for (int j = 0; j < nCols; j++) {
+                if (j == nCols - 1) sb.append(" |");
+                sb.append(String.format("%8.2f", row[j]));
+            }
+            sb.append(" ]\n");
+        }
+        return sb.toString();
+    }
+
     private static String[] parseSolutions(String X_str) {
         if (X_str == null || X_str.isEmpty()) return new String[0];
-
-        // Buscar el segmento de las soluciones (después de "Soluciones:")
-        int start = X_str.indexOf("Soluciones:");
-        if (start == -1) start = X_str.indexOf("Soluciones (Aproximadas):");
+        String anchor = "Soluciones (Aproximadas):";
+        int start = X_str.indexOf(anchor);
+        if (start == -1) { anchor = "Soluciones:"; start = X_str.indexOf(anchor); }
         if (start == -1) return new String[0];
-
-        String solutionBlock = X_str.substring(start);
+        String solutionBlock = X_str.substring(start + anchor.length());
         return solutionBlock.lines()
-                .skip(1) // Saltar la línea "Soluciones:"
                 .filter(line -> line.contains("="))
-                .map(line -> {
-                    // Extraer el valor después del '=' (y remover '≈' o espacios)
-                    String value = line.substring(line.indexOf('=') + 1).trim();
-                    // Para decimales, quita el '≈' si existe
-                    if (value.startsWith("≈")) {
-                        value = value.substring(1).trim();
-                    }
-                    return value;
-                })
+                .map(line -> line.substring(line.indexOf('=') + 1).replace('≈', ' ').trim())
                 .toArray(String[]::new);
     }
 
-    /**
-     * Formatea los coeficientes de una fila y sus soluciones para la impresión.
-     */
     private static String formatFractionRow(BigFraction[] A_row, BigFraction[] X) {
         StringBuilder sb = new StringBuilder();
         for (int j = 0; j < A_row.length; j++) {
-            sb.append(A_row[j].reduce()).append("·(").append(X[j].reduce()).append(")");
+            sb.append(String.format("(%s) * (%s)",
+                    A_row[j].reduce().toString().replace(" / ", "/"),
+                    X[j].reduce().toString().replace(" / ", "/")));
             if (j < A_row.length - 1) {
                 sb.append(" + ");
             }
@@ -494,4 +321,36 @@ public class MatrixSolver {
         return sb.toString();
     }
 
+    private static BigFraction parseToBigFraction(String s) {
+        s = s.trim();
+        if (s.contains("/")) {
+            String[] parts = s.split("/");
+            if (parts.length != 2) throw new NumberFormatException("Formato de fracción inválido: " + s);
+            try {
+                BigInteger num = new BigInteger(parts[0].trim());
+                BigInteger den = new BigInteger(parts[1].trim());
+                if (den.equals(BigInteger.ZERO)) throw new ArithmeticException("Denominador cero");
+                return new BigFraction(num, den);
+            } catch (NumberFormatException e) {
+                return new BigFraction(parseToDouble(s));
+            }
+        } else {
+            try {
+                return new BigFraction(new BigInteger(s));
+            } catch (NumberFormatException e) {
+                return new BigFraction(Double.parseDouble(s));
+            }
+        }
+    }
+
+    private static double parseToDouble(String s) {
+        s = s.trim().replace(",", ".");
+        if (s.contains("/")) {
+            String[] parts = s.split("/");
+            if (parts.length != 2) throw new NumberFormatException("Formato de fracción inválido para double: " + s);
+            return Double.parseDouble(parts[0].trim()) / Double.parseDouble(parts[1].trim());
+        } else {
+            return Double.parseDouble(s);
+        }
+    }
 }

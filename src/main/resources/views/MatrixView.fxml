@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox spacing="20" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="com.calculos.controllers.MatrixController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.MatrixController"
+      spacing="20" styleClass="root">
     <padding>
         <Insets bottom="20" left="30" right="30" top="20" />
     </padding>
 
     <HBox alignment="CENTER_LEFT" spacing="20">
-        <Button onAction="#backToMenu" styleClass="secondary-button" text="← Volver al Menú" />
+        <Button onAction="#backToMenu" styleClass="secondary-action-button" text="← Volver al Menú" />
         <Label styleClass="title-label" text="Resolución de Sistemas de Ecuaciones (3x3)" />
     </HBox>
 
@@ -26,22 +36,28 @@
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="80.0" />
             </columnConstraints>
             <Label styleClass="label" text="X₁" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-            <Label styleClass="label" text="X₂" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-            <Label styleClass="label" text="X₃" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
+            <Label styleClass="label" text="Y₂" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
+            <Label styleClass="label" text="Z₃" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
             <Label styleClass="label" text="b" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-            <TextField fx:id="a11Field" promptText="a₁₁" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-            <TextField fx:id="a12Field" promptText="a₁₂" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <TextField fx:id="a13Field" promptText="a₁₃" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-            <TextField fx:id="b1Field" promptText="b₁" GridPane.columnIndex="4" GridPane.rowIndex="1" />
-            <TextField fx:id="a21Field" promptText="a₂₁" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-            <TextField fx:id="a22Field" promptText="a₂₂" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <TextField fx:id="a23Field" promptText="a₂₃" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-            <TextField fx:id="b2Field" promptText="b₂" GridPane.columnIndex="4" GridPane.rowIndex="2" />
-            <TextField fx:id="a31Field" promptText="a₃₁" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-            <TextField fx:id="a32Field" promptText="a₃₂" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <TextField fx:id="a33Field" promptText="a₃₃" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-            <TextField fx:id="b3Field" promptText="b₃" GridPane.columnIndex="4" GridPane.rowIndex="3" />
-            <Pane style="-fx-background-color: -fx-color-secondary-purple;" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowSpan="4" />
+
+            <!-- ✅ CORRECCIÓN APLICADA: promptText actualizado a formato [fila,columna] -->
+            <TextField fx:id="a11Field" promptText="[1,1]" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <TextField fx:id="a12Field" promptText="[1,2]" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField fx:id="a13Field" promptText="[1,3]" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <TextField fx:id="b1Field" promptText="[1,4]" GridPane.columnIndex="4" GridPane.rowIndex="1" />
+
+            <TextField fx:id="a21Field" promptText="[2,1]" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+            <TextField fx:id="a22Field" promptText="[2,2]" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <TextField fx:id="a23Field" promptText="[2,3]" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <TextField fx:id="b2Field" promptText="[2,4]" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+
+            <TextField fx:id="a31Field" promptText="[3,1]" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+            <TextField fx:id="a32Field" promptText="[3,2]" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <TextField fx:id="a33Field" promptText="[3,3]" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+            <TextField fx:id="b3Field" promptText="[3,4]" GridPane.columnIndex="4" GridPane.rowIndex="3" />
+
+            <Pane style="-fx-background-color: #00BFFF;" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowSpan="4" />
+
             <rowConstraints>
                 <RowConstraints />
                 <RowConstraints />
@@ -52,11 +68,11 @@
     </VBox>
 
     <HBox alignment="CENTER_LEFT" spacing="15">
-        <Button onAction="#onFillWithZeros" styleClass="secondary-button" text="Rellenar Ceros" />
+        <Button onAction="#onFillWithZeros" styleClass="secondary-action-button" text="Rellenar Ceros" />
         <CheckBox fx:id="useFractionsCheck" selected="true" text="Usar cálculo exacto (fracciones)" />
         <Pane HBox.hgrow="ALWAYS" />
-        <Button onAction="#onClear" styleClass="secondary-button" text="Limpiar" />
-        <Button fx:id="solveButton" onAction="#onSolve" styleClass="primary-button" text="Resolver" />
+        <Button onAction="#onClear" styleClass="secondary-action-button" text="Limpiar" />
+        <Button fx:id="solveButton" onAction="#onSolve" styleClass="primary-action-button" text="Resolver Sistema" />
     </HBox>
 
     <VBox spacing="10" VBox.vgrow="ALWAYS">
@@ -64,7 +80,7 @@
             <Label styleClass="subtitle-label" text="Resultados del Análisis" />
             <Pane HBox.hgrow="ALWAYS" />
             <Button fx:id="checkButton" onAction="#onCheckSolution" styleClass="secondary-button" text="Corroborar Solución ✔" />
-            <Button fx:id="showStepsButton" onAction="#onShowSteps" styleClass="secondary-button" text="Ver Paso a Paso ⚙" />
+            <Button fx:id="showStepsButton" onAction="#onShowSteps" styleClass="secondary-action-button" text="Ver Paso a Paso ⚙" />
         </HBox>
         <TextArea fx:id="resultArea" editable="false" styleClass="result-area" wrapText="true" VBox.vgrow="ALWAYS" />
     </VBox>
