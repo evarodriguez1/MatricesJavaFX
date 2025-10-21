@@ -120,17 +120,16 @@
 
 /* Botón de Acción Principal (El motor del ciclo de luz) */
 .primary-action-button {
-    -fx-background-color: linear-gradient(to bottom, #FFD700, #FFA500); /* Naranja/Amarillo Neón */
-    -fx-text-fill: #000000; /* Texto oscuro para contraste */
+    -fx-background-color: transparent;
+    -fx-text-fill: #FF5733; /* ✅ CAMBIO: Texto color naranja "villano" */
     -fx-font-weight: bold;
-    -fx-border-color: #FFD700;
-    /* Glow Amarillo para acciones de alta energía */
-    -fx-effect: dropshadow(gaussian, #FFD700, 15, 0.8, 0, 0);
+    -fx-border-color: #FF5733; /* ✅ CAMBIO: Borde color naranja "villano" */
+    -fx-border-width: 2px;
 }
 
 .primary-action-button:hover {
-    -fx-effect: dropshadow(gaussian, #FFD700, 25, 1.0, 0, 0);
-    -fx-background-color: linear-gradient(to bottom, #FFD700, #FFB300);
+    -fx-background-color: #000F1F;
+    -fx-effect: dropshadow(gaussian, #FF5733, 10, 0.6, 0, 0);
 }
 
 /* Botón de Acción Secundaria (Limpiar) */
@@ -356,4 +355,29 @@
 .dialog-pane .button:hover {
     -fx-background-color: #000F1F;
     -fx-effect: dropshadow(gaussian, #00BFFF, 10, 0.6, 0, 0);
+}
+
+/* =================================================================
+   ESTILOS NUEVOS PARA BOTÓN DE MUTE (Adaptado para ImageView)
+   ================================================================= */
+.mute-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+}
+
+.mute-button .image-view {
+    /* Los efectos se aplican ahora al ImageView */
+    -fx-effect: dropshadow(gaussian, #00FFFF, 10, 0.6, 0, 0);
+}
+
+.mute-button:hover .image-view {
+    -fx-effect: dropshadow(gaussian, #FFD700, 15, 0.8, 0, 0); /* Glow Amarillo */
+}
+
+/* Estilo para cuando el botón está en estado "muted" */
+.mute-button.muted .image-view {
+    -fx-opacity: 0.6; /* Se vuelve semitransparente */
+    -fx-effect: none; /* Sin glow cuando está muteado */
 }

@@ -4,14 +4,12 @@
                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.matrices</groupId>
-    <artifactId>Matrices</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <groupId>com.calculos</groupId>
+    <artifactId>CalculadoraEstadistica</artifactId>
+    <version>2.0.0-PROFESSIONAL</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>24</maven.compiler.source>
-        <maven.compiler.target>24</maven.compiler.target>
         <java.version>24</java.version>
         <javafx.version>24.0.2</javafx.version>
     </properties>
@@ -29,20 +27,29 @@
             <version>${javafx.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- Componentes UI Adicionales -->
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>11.1.2</version>
+        </dependency>
+
+        <!-- Dependencia de Apache Commons Math -->
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-media</artifactId>
-            <version>21.0.4</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Compilador -->
+            <!-- Compilador de Java -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -53,19 +60,14 @@
                 </configuration>
             </plugin>
 
-            <!-- JavaFX -->
+            <!-- Plugin de JavaFX -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
-                <executions>
-                    <execution>
-                        <id>default-cli</id>
-                        <configuration>
-                            <mainClass>com.matrices/com.calculos.MainApp</mainClass>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <mainClass>com.calculos/com.calculos.MainApp</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
