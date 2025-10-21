@@ -120,7 +120,7 @@
 
 /* Botón de Acción Principal (El motor del ciclo de luz) */
 .primary-action-button {
-    -fx-background-color: transparent;
+    -fx-background-color: #1A1A1A;
     -fx-text-fill: #FF5733; /* ✅ CAMBIO: Texto color naranja "villano" */
     -fx-font-weight: bold;
     -fx-border-color: #FF5733; /* ✅ CAMBIO: Borde color naranja "villano" */

@@ -1,91 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.Slider?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.collections.FXCollections?>
-<?import java.lang.String?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.calculos.controllers.QuadraticAreaController"
-            prefHeight="750.0" prefWidth="850.0" styleClass="root">
-
-    <VBox alignment="TOP_CENTER" spacing="15" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
-
-        <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="NEVER">
-            <padding>
-                <Insets top="10" right="20" bottom="10" left="20"/>
-            </padding>
-            <Button onAction="#backToMenu" styleClass="secondary-button" text="← Volver al Menú" />
-            <Label text="Cálculo de Área Bajo la Curva Cuadrática" styleClass="title-label" />
-        </HBox>
-
-        <HBox alignment="TOP_CENTER" spacing="20" VBox.vgrow="ALWAYS">
-
-            <VBox alignment="TOP_CENTER" spacing="15" prefWidth="350" styleClass="content-pane" HBox.hgrow="NEVER">
-
-                <Label text="1. Define la Función Cuadrática" styleClass="subtitle-label" />
-
-                <HBox alignment="CENTER" spacing="5">
-                    <TextField fx:id="aField" promptText="a" prefWidth="40" styleClass="text-field" />
-                    <Label text="X² +" styleClass="label" />
-                    <TextField fx:id="bField" promptText="b" prefWidth="40" styleClass="text-field" />
-                    <Label text="X +" styleClass="label" />
-                    <TextField fx:id="cField" promptText="c" prefWidth="40" styleClass="text-field" />
-                </HBox>
-
-                <Label text="2. Define el Intervalo [A, B]" styleClass="subtitle-label" />
-                <HBox alignment="CENTER" spacing="10">
-                    <Label text="A:" styleClass="label" />
-                    <TextField fx:id="startField" promptText="Límite A" prefWidth="70" styleClass="text-field" />
-                    <Label text="B:" styleClass="label" />
-                    <TextField fx:id="endField" promptText="Límite B" prefWidth="70" styleClass="text-field" />
-                </HBox>
-
-                <Label text="3. Rectángulos de Aproximación" styleClass="subtitle-label" />
-                <VBox spacing="5" alignment="CENTER">
-                    <Label fx:id="rectanglesLabel" text="Cantidad N: 10" styleClass="label" />
-                    <Slider fx:id="rectanglesSlider" min="5" max="100" value="10" majorTickUnit="5" showTickLabels="true" showTickMarks="true" blockIncrement="1" prefWidth="300" />
-                    <HBox alignment="CENTER" spacing="10">
-                        <Label text="Aproximación:" styleClass="label"/>
-                        <ComboBox fx:id="approximationComboBox" value="Suma Inferior" prefWidth="120">
-                            <items>
-                                <FXCollections fx:factory="observableArrayList">
-                                    <String fx:value="Suma Inferior" />
-                                    <String fx:value="Suma Superior" />
-                                </FXCollections>
-                            </items>
-                        </ComboBox>
-                    </HBox>
-                </VBox>
-
-                <VBox spacing="10" alignment="CENTER">
-                    <Button text="Calcular Área" onAction="#calculateArea" prefWidth="200" styleClass="button, secondary-action-button" />
-                    <Button text="Limpiar" onAction="#clearFields" prefWidth="200" styleClass="button, secondary-action-button" />
-                </VBox>
-
-            </VBox>
-
-            <VBox fx:id="chartContainer" alignment="TOP_CENTER" spacing="10" styleClass="content-pane" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                <Label text="Visualización Gráfica" styleClass="subtitle-label" />
-
-                <StackPane fx:id="canvasWrapper" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"
-                           style="-fx-background-color: #333333; -fx-background-radius: 10;">
-                </StackPane>
-
-            </VBox>
-        </HBox>
-
-    </VBox>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.calculos.controllers.QuadraticAreaController"
+            prefHeight="750.0" prefWidth="950.0" styleClass="root">
     <padding>
-        <Insets top="0" right="20" bottom="20" left="20"/>
+        <Insets bottom="20" left="20" right="20" top="10" />
     </padding>
 
-</AnchorPane>
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="15" />
+            </padding>
+            <Button onAction="#backToMenu" styleClass="secondary-action-button" text="← Volver al Menú" />
+            <Label styleClass="title-label" text="Cálculo de Área Bajo la Curva Cuadrática" />
+        </HBox>
+    </top>
+
+    <left>
+        <VBox fx:id="controlsPanel" alignment="TOP_CENTER" minWidth="430" prefWidth="450" spacing="20" styleClass="content-pane">
+            <BorderPane.margin>
+                <Insets right="20" />
+            </BorderPane.margin>
+
+            <Label styleClass="subtitle-label" text="1. Define la Función Cuadrática" />
+
+            <!-- ✅ CORRECCIÓN DEFINITIVA -->
+            <HBox alignment="CENTER" spacing="10">
+
+                <!-- HBox.hgrow="NEVER" evita que el TextField intente expandirse -->
+                <TextField fx:id="aField" promptText="a (≠0)" prefWidth="60" styleClass="text-field" HBox.hgrow="NEVER" />
+                <Label text="x²+" styleClass="label" />
+
+                <TextField fx:id="bField" promptText="b" prefWidth="60" styleClass="text-field" HBox.hgrow="NEVER" />
+                <Label text="x+" styleClass="label" />
+
+                <TextField fx:id="cField" promptText="c" prefWidth="60" styleClass="text-field" HBox.hgrow="NEVER" />
+            </HBox>
+
+            <Label styleClass="subtitle-label" text="2. Define el Intervalo [A, B]" />
+            <HBox alignment="CENTER" spacing="10">
+                <Label styleClass="label" text="A:" />
+                <TextField fx:id="startField" prefWidth="120" promptText="Límite Inferior" styleClass="text-field" />
+                <Label styleClass="label" text="B:" />
+                <TextField fx:id="endField" prefWidth="120" promptText="Límite Superior" styleClass="text-field" />
+            </HBox>
+
+            <Label styleClass="subtitle-label" text="3. Rectángulos de Aproximación" />
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="rectanglesLabel" styleClass="label" text="Cantidad N: 10" />
+                <Slider fx:id="rectanglesSlider" blockIncrement="1" majorTickUnit="10" max="100" min="5" prefWidth="350" showTickLabels="true" showTickMarks="true" value="10" />
+                <HBox alignment="CENTER" spacing="10">
+                    <padding>
+                        <Insets top="5" />
+                    </padding>
+                    <Label styleClass="label" text="Aproximación:" />
+                    <ComboBox fx:id="approximationComboBox" prefWidth="150" value="Suma Inferior">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="Suma Inferior" />
+                                <String fx:value="Suma Superior" />
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </HBox>
+            </VBox>
+
+            <VBox alignment="CENTER" spacing="10">
+                <padding>
+                    <Insets top="15" />
+                </padding>
+                <Button onAction="#calculateArea" prefWidth="220" styleClass="primary-action-button" text="Calcular Área" />
+                <Button onAction="#clearFields" prefWidth="220" styleClass="secondary-action-button" text="Limpiar" />
+                <Button fx:id="showResultsButton" disable="true" onAction="#showResultsPopup" prefWidth="220" styleClass="secondary-action-button" text="Último Resultado" />
+            </VBox>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox fx:id="chartContainer" alignment="TOP_CENTER" spacing="10" styleClass="content-pane">
+            <Label styleClass="subtitle-label" text="Visualización Gráfica" />
+            <StackPane fx:id="canvasWrapper" style="-fx-background-color: rgba(10, 20, 30, 0.7); -fx-background-radius: 5;" VBox.vgrow="ALWAYS">
+            </StackPane>
+        </VBox>
+    </center>
+</BorderPane>
