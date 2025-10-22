@@ -6,8 +6,10 @@ import com.calculos.utils.PopupManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -18,78 +20,94 @@ public class PoissonController {
 
     @FXML private TextField lambdaField;
     @FXML private ComboBox<String> calculationType;
+    @FXML private GridPane inputFieldsPane; // Contenedor dinámico
+    @FXML private Label x1Label;
     @FXML private TextField x1Field;
+    @FXML private Label x2Label;
     @FXML private TextField x2Field;
     @FXML private TextArea resultArea;
 
     private final Map<String, Integer> typeMap = new LinkedHashMap<>();
-    private List<TextField> allFields; // Lista para manejo eficiente
+    private List<TextField> allFields;
 
-    /**
-     * Se ejecuta al cargar la vista para configuraciones iniciales.
-     */
     @FXML
     public void initialize() {
         allFields = Arrays.asList(lambdaField, x1Field, x2Field);
 
-        typeMap.put("P(X = x) - Exacto", 1);
-        typeMap.put("P(X ≤ x) - Como Máximo", 2);
-        typeMap.put("P(X ≥ x) - Como Mínimo", 3);
+        typeMap.put("P(X = x) - Puntual", 1);
+        typeMap.put("P(X ≤ x) - Acumulada Inferior", 2);
+        typeMap.put("P(X ≥ x) - Acumulada Superior", 3);
         typeMap.put("P(a ≤ X ≤ b) - Rango", 4);
         calculationType.setItems(FXCollections.observableArrayList(typeMap.keySet()));
-        calculationType.getSelectionModel().selectFirst();
 
-        // Listener para habilitar/deshabilitar x2Field (campo de rango)
+        // ✅ IMPLEMENTACIÓN: Listener mejorado para controlar la visibilidad
         calculationType.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+            if (newValue == null) {
+                inputFieldsPane.setVisible(false);
+                inputFieldsPane.setManaged(false);
+                return;
+            }
+
+            inputFieldsPane.setVisible(true);
+            inputFieldsPane.setManaged(true);
+
             boolean isRange = typeMap.getOrDefault(newValue, 0) == 4;
-            x2Field.setDisable(!isRange);
+
+            x1Label.setText(isRange ? "Límite inferior 'a':" : "Nº de Eventos 'x':");
+            x1Field.setPromptText(isRange ? "Ej: 2" : "Número de eventos");
+
+            x2Label.setVisible(isRange);
+            x2Label.setManaged(isRange);
+            x2Field.setVisible(isRange);
+            x2Field.setManaged(isRange);
+
             if (!isRange) {
                 x2Field.clear();
             }
         });
     }
 
-    /**
-     * Resuelve la probabilidad de Poisson y muestra los resultados.
-     */
+    private int getValidatedInteger(TextField field, String fieldName) throws IllegalArgumentException {
+        double value = InputValidator.parseDouble(field.getText(), fieldName);
+        if (value < 0 || value % 1 != 0) {
+            throw new IllegalArgumentException(String.format("El campo '%s' debe ser un número entero no negativo.", fieldName));
+        }
+        return (int) value;
+    }
+
     @FXML
     private void onSolve() {
-        clearErrorStyles();
         try {
-            // 1. Validar el parámetro lambda
-            double lambda = getValidatedDouble(lambdaField, "Promedio (λ)");
+            double lambda = InputValidator.parseDouble(lambdaField.getText(), "Promedio (λ)");
             if (lambda <= 0) {
                 throw new IllegalArgumentException("El promedio de ocurrencias (λ) debe ser un número positivo.");
             }
 
-            // 2. Determinar el rango de cálculo (desde, hasta)
             String selectedType = calculationType.getValue();
-            int option = typeMap.getOrDefault(selectedType, 0);
+            if (selectedType == null) {
+                throw new IllegalArgumentException("Por favor, selecciona un tipo de cálculo.");
+            }
+            int option = typeMap.get(selectedType);
 
             int desde;
-            int hasta;
-            int x1 = getValidatedInteger(x1Field, "Valor de x (o a)");
+            int hasta = 0; // Inicializada para evitar error de compilación
+            int x1 = getValidatedInteger(x1Field, isRange(option) ? "Límite inferior 'a'" : "Valor de 'x'");
 
             switch (option) {
-                case 1 -> desde = hasta = x1; // Exacto
-                case 2 -> { desde = 0; hasta = x1; } // Máximo
-                case 3 -> {
-                    // Lógica especial para 'como mínimo', el cálculo se hace con un método diferente
-                    desde = x1;
-                    hasta = -1; // Usamos un valor sentinela para identificar este caso en el formateo
-                }
+                case 1 -> desde = hasta = x1;
+                case 2 -> { desde = 0; hasta = x1; }
+                case 3 -> desde = x1;
                 case 4 -> {
                     desde = x1;
-                    hasta = getValidatedInteger(x2Field, "Valor de b");
+                    hasta = getValidatedInteger(x2Field, "Límite superior 'b'");
                 }
-                default -> throw new IllegalArgumentException("Por favor, seleccione un tipo de cálculo válido.");
+                default -> throw new IllegalStateException("Opción de cálculo inesperada.");
             }
 
             if (option == 4 && hasta < desde) {
-                throw new IllegalArgumentException("El valor de 'b' no puede ser menor que 'a' en un rango.");
+                throw new IllegalArgumentException("El límite superior 'b' no puede ser menor que 'a'.");
             }
 
-            // 3. Calcular la probabilidad usando el Solver apropiado
             double totalProb;
             if (option == 3) {
                 totalProb = PoissonSolver.solvePoissonMinimo(lambda, desde);
@@ -97,7 +115,6 @@ public class PoissonController {
                 totalProb = PoissonSolver.solvePoissonRange(lambda, desde, hasta);
             }
 
-            // 4. Formatear y mostrar el resultado amigable
             resultArea.setText(formatResult(selectedType, desde, hasta, totalProb, lambda));
 
         } catch (IllegalArgumentException e) {
@@ -108,89 +125,40 @@ public class PoissonController {
         }
     }
 
-    /**
-     * Limpia todos los campos de entrada y estilos de error.
-     */
     @FXML
     private void onClear() {
         allFields.forEach(TextField::clear);
         resultArea.clear();
-        clearErrorStyles();
-        calculationType.getSelectionModel().selectFirst();
+
+        // ✅ CORRECCIÓN: Restablecer estado inicial
+        calculationType.setValue(null);
+        inputFieldsPane.setVisible(false);
+        inputFieldsPane.setManaged(false);
     }
 
-    // =============================================================
-    // MÉTODOS DE AYUDA (Helpers) - Lógica Interna
-    // =============================================================
-
-    private int getValidatedInteger(TextField field, String fieldName) {
-        double val = getValidatedDouble(field, fieldName);
-        if (val % 1 != 0 || val < 0) {
-            field.getStyleClass().add("error-field");
-            throw new IllegalArgumentException(String.format("El campo '%s' debe ser un número entero no negativo.", fieldName));
-        }
-        return (int) val;
+    private boolean isRange(int option) {
+        return option == 4;
     }
 
-    private double getValidatedDouble(TextField field, String fieldName) {
-        try {
-            double value = InputValidator.parseDouble(field.getText(), fieldName);
-            field.getStyleClass().remove("error-field");
-            return value;
-        } catch (IllegalArgumentException e) {
-            field.getStyleClass().add("error-field");
-            throw e;
-        }
-    }
-
-    private void clearErrorStyles() {
-        allFields.forEach(field -> field.getStyleClass().remove("error-field"));
-    }
-
-    /**
-     * Formatea el resultado final en un formato amigable y "bajado a tierra".
-     */
     private String formatResult(String selectedType, int desde, int hasta, double prob, double lambda) {
-        String probDescriptionText;
-        String fullProbNotation;
-        String probType = selectedType.split(" - ")[1];
+        String probDescription;
+        int option = typeMap.get(selectedType);
 
-        // Construcción de la descripción del resultado
-        switch(probType) {
-            case "Exacto" -> {
-                probDescriptionText = String.format("que ocurran exactamente %d eventos", desde);
-                fullProbNotation = String.format("P(X = %d)", desde);
-            }
-            case "Como Máximo" -> {
-                probDescriptionText = String.format("que ocurran como máximo %d eventos", hasta);
-                fullProbNotation = String.format("P(X ≤ %d)", hasta);
-            }
-            case "Como Mínimo" -> {
-                probDescriptionText = String.format("que ocurran como mínimo %d eventos", desde);
-                fullProbNotation = String.format("P(X ≥ %d)", desde);
-            }
-            case "Rango" -> {
-                probDescriptionText = String.format("que ocurran entre %d y %d eventos", desde, hasta);
-                fullProbNotation = String.format("P(%d ≤ X ≤ %d)", desde, hasta);
-            }
-            default -> {
-                probDescriptionText = "";
-                fullProbNotation = "";
-            }
+        switch (option) {
+            case 1: probDescription = String.format("que ocurran exactamente %d eventos", desde); break;
+            case 2: probDescription = String.format("que ocurran como máximo %d eventos", hasta); break;
+            case 3: probDescription = String.format("que ocurran como mínimo %d eventos", desde); break;
+            case 4: probDescription = String.format("que ocurran entre %d y %d eventos", desde, hasta); break;
+            default: probDescription = "cálculo especificado";
         }
 
         return String.format(
-                "--- Datos Clave de la Distribución ---\n" +
-                        "Una propiedad de Poisson es que la media (esperanza) y la varianza son iguales al promedio ingresado.\n" +
-                        "→ Valor Esperado E[X] = %.4f\n" +
-                        "→ Varianza Var[X] = %.4f\n\n" +
-                        "--- Resultado ---\n" +
-                        "La probabilidad de %s (%s) es: %,.10f",
-                lambda,
-                lambda,
-                probDescriptionText,
-                fullProbNotation,
-                prob
+                "--- Resultado del Cálculo ---\n" +
+                        "La probabilidad de %s es: \n%,.8f (%.4f %%)\n\n" +
+                        "--- Parámetros de la Distribución ---\n" +
+                        "Media (μ) y Varianza (σ²) son iguales a λ en Poisson.\n" +
+                        "Valor Esperado y Varianza = %.4f",
+                probDescription, prob, prob * 100, lambda
         );
     }
 }

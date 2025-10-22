@@ -5,39 +5,45 @@ import com.calculos.MainApp;
 import com.calculos.utils.PopupManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class StatisticsController {
 
     @FXML private ComboBox<String> dataTypeComboBox;
     @FXML private TextField dataInputField;
-    @FXML private ComboBox<String> resultTypeComboBox;
-    @FXML private TextArea resultArea;
 
     private List<Double> currentData = new ArrayList<>();
-    private String currentDataType = "Continuos"; // Default
+    private String currentDataType;
 
     @FXML
     public void initialize() {
-        // Inicializar ComboBox de tipo de datos
         dataTypeComboBox.setItems(FXCollections.observableArrayList("Continuos", "Discretos"));
-        dataTypeComboBox.setValue("Continuos");
-        dataTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> currentDataType = newVal);
 
-        // Inicializar ComboBox de resultados específicos
-        resultTypeComboBox.setItems(FXCollections.observableArrayList(
-                "Medidas de Posición (Media, Mediana, Moda, Cuartiles)",
-                "Medidas de Dispersión (Varianza, Desviación, Curtosis)",
-                "Tabla de Frecuencias (Absolutas y Relativas)"
-        ));
+        dataTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                currentDataType = newVal;
+                dataInputField.setDisable(false);
+                if (newVal.equals("Discretos")) {
+                    dataInputField.setPromptText("Ej: 1, 2, 3, 4, 5");
+                } else {
+                    dataInputField.setPromptText("Ej: 1.5, 2.33, 3.1, 4.0");
+                }
+            }
+        });
     }
 
     private List<Double> parseAndValidateData() throws IllegalArgumentException {
@@ -46,7 +52,6 @@ public class StatisticsController {
             throw new IllegalArgumentException("La lista de números no puede estar vacía.");
         }
 
-        // Reemplaza comas por espacios y divide
         String[] partes = entrada.replace(",", " ").split("\\s+");
         List<Double> numeros = new ArrayList<>();
 
@@ -54,8 +59,8 @@ public class StatisticsController {
             if (parte.isEmpty()) continue;
             try {
                 double valor = Double.parseDouble(parte);
-                if (currentDataType.equals("Discretos") && valor % 1 != 0) {
-                    throw new IllegalArgumentException("Los datos discretos deben ser números enteros.");
+                if ("Discretos".equals(currentDataType) && valor % 1 != 0) {
+                    throw new IllegalArgumentException("Se seleccionó 'Discretos', pero se encontraron valores con decimales.");
                 }
                 numeros.add(valor);
             } catch (NumberFormatException e) {
@@ -66,9 +71,6 @@ public class StatisticsController {
         if (numeros.isEmpty()) {
             throw new IllegalArgumentException("No se detectaron números válidos en la entrada.");
         }
-
-        // La lista debe estar ordenada para los cálculos de cuartiles y mediana
-        Collections.sort(numeros);
         return numeros;
     }
 
@@ -77,57 +79,40 @@ public class StatisticsController {
         try {
             currentData = parseAndValidateData();
 
-            // 1. Mostrar datos básicos y ordenados
-            StringBuilder sb = new StringBuilder();
-            sb.append("--- Análisis Estadístico Descriptivo ---\n");
-            sb.append(String.format("Tipo de Datos: %s\n", currentDataType));
-            sb.append(String.format("Cantidad de Datos (N): %d\n", currentData.size()));
-            sb.append(String.format("Lista Ordenada: %s...\n",
-                    currentData.stream()
-                            .limit(20) // Muestra solo los primeros 20 para no saturar
-                            .map(d -> String.format("%.2f", d))
-                            .collect(Collectors.joining(", ")) + (currentData.size() > 20 ? " y más" : "")));
-            sb.append("\n======================================\n\n");
+            // Creamos una copia ordenada solo para la visualización inicial de la lista
+            List<Double> sortedDataForDisplay = new ArrayList<>(currentData);
+            Collections.sort(sortedDataForDisplay);
 
-            // 2. Calcular y mostrar todas las secciones
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- Análisis Estadístico Descriptivo Completo ---\n\n");
+            sb.append(String.format("Tipo de Datos Seleccionado: %s\n", currentDataType));
+            sb.append(String.format("Cantidad Total de Datos (N): %d\n\n", sortedDataForDisplay.size()));
+
+            sb.append("Lista de Datos Ordenada:\n");
+            String datosOrdenados = sortedDataForDisplay.stream()
+                    .map(d -> String.format(currentDataType.equals("Discretos") ? "%.0f" : "%.4f", d))
+                    .collect(Collectors.joining(", "));
+            sb.append(datosOrdenados);
+            sb.append("\n\n======================================================\n\n");
+
+            // Pasamos la lista original (sin ordenar) al Solver
             sb.append(calculatePosicion(currentData));
-            sb.append("\n======================================\n\n");
+            sb.append("\n======================================================\n\n");
             sb.append(calculateDispersion(currentData));
-            sb.append("\n======================================\n\n");
+            sb.append("\n======================================================\n\n");
             sb.append(calculateFrequencies(currentData));
 
-            resultArea.setText(sb.toString());
+            PopupManager.showResultsPopup(
+                    "Resultados Estadísticos",
+                    "Cálculos completados exitosamente.",
+                    sb.toString()
+            );
 
         } catch (IllegalArgumentException ex) {
             PopupManager.showError(ex.getMessage());
         } catch (Exception ex) {
-            PopupManager.showError("Error inesperado en el cálculo de estadísticas: " + ex.getMessage());
+            PopupManager.showError("Ocurrió un error inesperado al calcular: " + ex.getMessage());
             ex.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void onSolveSpecific() {
-        String selected = resultTypeComboBox.getValue();
-        if (selected == null) return;
-
-        try {
-            // Asegurarse de que los datos estén parseados y validados antes de un cálculo específico
-            if (currentData.isEmpty() || !dataInputField.getText().trim().isEmpty()) {
-                currentData = parseAndValidateData();
-            }
-
-            if (selected.contains("Posición")) {
-                resultArea.setText(calculatePosicion(currentData));
-            } else if (selected.contains("Dispersión")) {
-                resultArea.setText(calculateDispersion(currentData));
-            } else if (selected.contains("Frecuencias")) {
-                resultArea.setText(calculateFrequencies(currentData));
-            }
-
-        } catch (IllegalArgumentException ex) {
-            // Si hay un error al parsear los datos, mostramos el error
-            PopupManager.showError(ex.getMessage());
         }
     }
 
@@ -144,7 +129,7 @@ public class StatisticsController {
         sb.append(String.format("Media (μ/x̄): %.4f\n", media));
         sb.append(String.format("Mediana (Q2): %.4f\n", mediana));
 
-        String modaStr = modas.isEmpty() ? "No hay moda o es unimodal (f=1)." :
+        String modaStr = modas.isEmpty() ? "No hay moda (o todos los valores son únicos)." :
                 modas.size() == 1 ? String.format("%.4f", modas.get(0)) :
                         "Múltiple: " + modas.stream().map(d -> String.format("%.4f", d)).collect(Collectors.joining(", "));
         sb.append(String.format("Moda: %s\n", modaStr));
@@ -172,8 +157,8 @@ public class StatisticsController {
         sb.append(String.format("Rango Intercuartílico (RIQ): %.4f\n", rangoIQ));
         sb.append(String.format("Coeficiente de Variación (CV): %.2f%%\n", cv));
 
-        String interpretacion = curtosis < -0.263 ? "Platicúrtica (aplanada)" :
-                curtosis > 0.263 ? "Leptocúrtica (apuntada)" : "Mesocúrtica (Normal)";
+        String interpretacion = curtosis < -0.2 ? "Platicúrtica (aplanada)" :
+                curtosis > 0.2 ? "Leptocúrtica (apuntada)" : "Mesocúrtica (Normal)";
         sb.append(String.format("Coeficiente de Curtosis (g₂): %.4f → %s\n", curtosis, interpretacion));
 
         return sb.toString();
@@ -188,19 +173,20 @@ public class StatisticsController {
         long acumuladaAbs = 0;
         double acumuladaRel = 0;
 
-        // Título de la tabla
-        sb.append(String.format("%-10s %-8s %-8s %-12s %-12s\n", "Valor (xi)", "f (Abs)", "F (Abs)", "fr (Rel %)", "Fr (Rel %)"));
+        sb.append(String.format("%-12s %-10s %-10s %-15s %-15s\n", "Valor (xi)", "f (Abs)", "F (Acum)", "fr (Rel %)", "Fr (Acum %)"));
         sb.append("-----------------------------------------------------------------------\n");
 
-        for (Map.Entry<Double, Long> entry : frecuenciaAbs.entrySet()) {
-            double valor = entry.getKey();
-            long f = entry.getValue();
+        // Creamos una lista de las claves para poder iterar ordenadamente
+        List<Double> sortedKeys = new ArrayList<>(frecuenciaAbs.keySet());
+        Collections.sort(sortedKeys);
 
+        for (Double valor : sortedKeys) {
+            long f = frecuenciaAbs.get(valor);
             acumuladaAbs += f;
             double fr = (f * 100.0) / total;
             acumuladaRel += fr;
 
-            sb.append(String.format("%-10.2f %-8d %-8d %-12.2f %-12.2f\n", valor, f, acumuladaAbs, fr, acumuladaRel));
+            sb.append(String.format("%-12.2f %-10d %-10d %-15.2f %-15.2f\n", valor, f, acumuladaAbs, fr, acumuladaRel));
         }
 
         return sb.toString();
@@ -209,10 +195,14 @@ public class StatisticsController {
     @FXML
     private void onClear() {
         dataInputField.clear();
-        resultArea.clear();
+        dataInputField.setDisable(true);
+        dataInputField.setPromptText("Primero selecciona un tipo");
         currentData.clear();
-        dataTypeComboBox.setValue("Continuos");
-        resultTypeComboBox.getSelectionModel().clearSelection();
+
+        dataTypeComboBox.setValue(null);
+        dataTypeComboBox.setPromptText("Selecciona el tipo de dato");
+
+        currentDataType = null;
     }
 
     @FXML

@@ -20,47 +20,51 @@
         <Insets top="20" right="30" bottom="20" left="30"/>
     </padding>
 
-    <!-- === COLUMNA IZQUIERDA: PANEL DE CONTROLES (ANCHO FIJO) === -->
+    <!-- === COLUMNA IZQUIERDA: PANEL DE CONTROLES === -->
     <VBox spacing="15" prefWidth="400" minWidth="350">
 
         <!-- Sección de Parámetro Lambda -->
         <VBox styleClass="content-pane" spacing="10">
-            <Label text="Parámetro (λ)" styleClass="subtitle-label"/>
+            <Label text="Parámetro de la Distribución (λ)" styleClass="subtitle-label"/>
             <GridPane hgap="10" vgap="10">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="SOMETIMES" />
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="220.0" />
+                    <!-- ✅ CORRECCIÓN: Columna de etiquetas nunca se encoge -->
+                    <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
                 </columnConstraints>
-                <Label text="Promedio (λ):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <TextField fx:id="lambdaField" promptText="Ocurrencias por intervalo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="Promedio de Ocurrencias (λ):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="lambdaField" promptText="λ > 0" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
             </GridPane>
         </VBox>
 
         <!-- Sección de Tipo de Probabilidad -->
         <VBox styleClass="content-pane" spacing="10">
-            <Label text="Tipo de Probabilidad" styleClass="subtitle-label"/>
+            <Label text="Tipo de Probabilidad a Calcular" styleClass="subtitle-label"/>
             <ComboBox fx:id="calculationType" promptText="Selecciona un tipo de cálculo" maxWidth="Infinity"/>
-            <GridPane hgap="10" vgap="10">
+
+            <!-- ✅ IMPLEMENTACIÓN: Este GridPane estará oculto al inicio -->
+            <GridPane fx:id="inputFieldsPane" hgap="10" vgap="10" visible="false" managed="false">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="SOMETIMES" />
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="110.0" />
+                    <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
                 </columnConstraints>
-                <Label text="Valor de x (o a):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+                <Label fx:id="x1Label" text="Nº de Eventos 'x':" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                 <TextField fx:id="x1Field" promptText="Número de eventos" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-                <Label text="Valor de b (para rangos):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <TextField fx:id="x2Field" promptText="Solo si es rango" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label fx:id="x2Label" text="Límite superior 'b':" visible="false" managed="false" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="x2Field" visible="false" managed="false" promptText="Tal que b > a" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
             </GridPane>
         </VBox>
 
         <!-- Sección de Acciones -->
         <HBox spacing="10" alignment="CENTER_RIGHT">
-            <Button onAction="#onClear" text="Limpiar" styleClass="secondary-button"/>
-            <Button onAction="#onSolve" text="Calcular Probabilidad" styleClass="primary-button"/>
+            <Button onAction="#onClear" text="Limpiar" styleClass="secondary-action-button"/>
+            <Button onAction="#onSolve" text="Calcular Probabilidad" styleClass="primary-action-button"/>
         </HBox>
     </VBox>
 
-    <!-- === COLUMNA DERECHA: PANEL DE RESULTADOS (ESPACIO FLEXIBLE) === -->
+    <!-- === COLUMNA DERECHA: PANEL DE RESULTADOS === -->
     <VBox spacing="10" HBox.hgrow="ALWAYS">
         <Label text="Resultado y Otros Datos" styleClass="subtitle-label"/>
         <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
@@ -69,5 +73,4 @@
             </content>
         </ScrollPane>
     </VBox>
-
 </HBox>

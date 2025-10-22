@@ -13,42 +13,41 @@ import java.util.Objects;
 public class MainApp extends Application {
 
     private static Stage primaryStage;
-    private static MediaPlayer globalMusic; // ✅ ÚNICO EN TODO EL PROGRAMA
+    private static MediaPlayer globalMusic;
 
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
         stage.setTitle("Calculadora de Matemática Aplicada");
 
-        stage.setWidth(850);
-        stage.setHeight(750);
+        stage.setWidth(925);
+        stage.setHeight(790);
 
-        // ✅ MÚSICA PRIMERO - SOLO AQUÍ
         setupGlobalMusic();
 
-        // Luego menú
         showMainMenuView();
 
         stage.show();
     }
 
-    // ✅ MÚSICA GLOBAL - UNA SOLA VEZ
     private void setupGlobalMusic() {
         try {
-            if (globalMusic == null) { // ✅ PREVIENE DUPLICADOS
-                String musicPath = getClass().getResource("/audio/end_of_line_TRON.mp3").toExternalForm();
+            if (globalMusic == null) {
+                String musicPath = Objects.requireNonNull(getClass().getResource("/audio/end_of_line_TRON.mp3")).toExternalForm();
                 Media music = new Media(musicPath);
                 globalMusic = new MediaPlayer(music);
-
                 globalMusic.setVolume(0.3);
                 globalMusic.setCycleCount(MediaPlayer.INDEFINITE);
                 globalMusic.play();
-
                 System.out.println("🎵 MÚSICA INICIADA - UNA SOLA VEZ");
             }
         } catch (Exception e) {
             System.out.println("🎵 Audio no encontrado: " + e.getMessage());
         }
+    }
+
+    public static MediaPlayer getGlobalMusicPlayer() {
+        return globalMusic;
     }
 
     public static Stage getPrimaryStage() {
@@ -66,24 +65,17 @@ public class MainApp extends Application {
         primaryStage.centerOnScreen();
     }
 
-    // ✅ SIN CONEXIÓN A CONTROLLER
     public static void showMainMenuView() throws Exception {
         FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/views/RootView.fxml"));
         Parent root = loader.load();
         setRoot(root, "Calculadora de Matemática Aplicada - Menú Principal");
     }
 
-    // ✅ CIERRA MÚSICA LIMPIO
     @Override
     public void stop() {
         if (globalMusic != null) {
             globalMusic.stop();
             System.out.println("🎵 MÚSICA DETENIDA");
-        }
-        try {
-            super.stop();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
