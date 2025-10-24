@@ -10,8 +10,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>24</java.version>
-        <javafx.version>24.0.2</javafx.version>
+        <!-- ✅ CONFIGURACIÓN PARA JAVA 17 -->
+        <java.version>17</java.version>
+        <javafx.version>17.0.11</javafx.version> <!-- Una versión estable y reciente para Java 17 -->
     </properties>
 
     <dependencies>
@@ -31,15 +32,11 @@
             <artifactId>javafx-media</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-
-        <!-- Componentes UI Adicionales -->
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
             <version>11.1.2</version>
         </dependency>
-
-        <!-- Dependencia de Apache Commons Math -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
@@ -59,15 +56,47 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
-
             <!-- Plugin de JavaFX -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.calculos/com.calculos.MainApp</mainClass>
+                    <mainClass>com.calculos/com.calculos.Launcher</mainClass>
                 </configuration>
+            </plugin>
+
+            <!-- ✅ PLUGIN ESENCIAL AÑADIDO: Crea el JAR ejecutable "gordo" -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.calculos.Launcher</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
